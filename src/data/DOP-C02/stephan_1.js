@@ -1,4 +1,4 @@
-const stephan_1 = {
+export const stephan_1 = {
   count: 45,
   next: null,
   previous: null,

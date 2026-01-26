@@ -1,4 +1,4 @@
-const dojo_2 = {
+export const dojo_2 = {
   count: 75,
   next: null,
   previous: null,
