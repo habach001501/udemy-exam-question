@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CloudPro Simulator</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="logo" onclick="window.location.href='index.html'">
+            <i class="fa-solid fa-cloud"></i> CloudPro Simulator
+        </div>
+        <nav>
+            <button class="active"><i class="fa-solid fa-house"></i> Dashboard</button>
+            <button onclick="app.navTo('history.html')"><i class="fa-solid fa-clock-rotate-left"></i> History</button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- View: Dashboard -->
+        <section id="view-dashboard" class="view-section active">
+            <div class="hero">
+                <h1 id="course-title">Loading Course...</h1>
+                <p>Master your certification with simulation exams and topic reviews.</p>
+                <button class="btn btn-outline btn-sm" onclick="window.location.href='index.html'"
+                    style="margin-top: 1rem;"><i class="fa-solid fa-arrow-left"></i> Change Course</button>
+            </div>
+
+            <h2><i class="fa-solid fa-layer-group"></i> Practice Modes</h2>
+            <br>
+            <div class="card-grid">
+                <div class="mode-card" onclick="app.setupReviewMode()">
+                    <div class="mode-icon"><i class="fa-solid fa-book-open"></i></div>
+                    <h3>Topic Review</h3>
+                    <p>Browse questions set-by-set. Reveal answers immediately. No time limit.</p>
+                    <button class="btn btn-secondary">Start Review <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+
+                <div class="mode-card" onclick="app.setupExamMode()">
+                    <div class="mode-icon"><i class="fa-solid fa-stopwatch"></i></div>
+                    <h3>Exam Simulator</h3>
+                    <p>Real exam conditions. Timed. Random questions from all sets. Score at the end.</p>
+                    <button class="btn btn-secondary">Start Exam <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- View: Setup (Dynamic configuration before start) - Now Overlay/Modal or separate page? 
+             Let's keep it in dashboard as a secondary state or use a simple toggle visibility if we want strict one-page-per-view.
+             For simplicity, let's keep the setup logic here as it's part of "Dashboarding" the experience.
+        -->
+        <section id="view-setup" class="view-section">
+            <div class="hero">
+                <h1 id="setup-title">Configure Session</h1>
+            </div>
+            <div id="setup-options" class="card-grid">
+                <!-- Injected via JS -->
+            </div>
+            <div style="margin-top: 2rem; text-align: center;">
+                <button class="btn btn-primary btn-lg" id="btn-start-session">Start Session</button>
+                <button class="btn btn-outline" onclick="window.location.reload()">Cancel</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- App Logic -->
+    <script src="script.js"></script>
+</body>
+
+</html>
