@@ -81,24 +81,23 @@ const Dashboard = () => {
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
                     <div
                         className="bg-bg-card border border-white/5 rounded-xl p-8 transition-all duration-200 cursor-pointer hover:-translate-y-1 hover:shadow-xl hover:border-primary group"
-                        onClick={handleStartExamSetup}
-                    >
-                        <div className="text-4xl mb-4 text-primary group-hover:scale-110 transition-transform">
-                            <i className="fa-solid fa-stopwatch"></i>
-                        </div>
-                        <h3 className="text-2xl font-bold mb-2">Exam Simulator</h3>
-                        <p className="text-text-muted">Timed exam mode simulating real test conditions. Random questions from all sets.</p>
-                    </div>
-
-                    <div
-                        className="bg-bg-card border border-white/5 rounded-xl p-8 transition-all duration-200 cursor-pointer hover:-translate-y-1 hover:shadow-xl hover:border-primary group"
                         onClick={handleStartReview}
                     >
-                        <div className="text-4xl mb-4 text-primary group-hover:scale-110 transition-transform">
+                        <div className="text-4xl mb-4 text-primary transition-transform">
                             <i className="fa-solid fa-book-open"></i>
                         </div>
                         <h3 className="text-2xl font-bold mb-2">Review Questions</h3>
                         <p className="text-text-muted">Browse questions by practice set. View answers and explanations immediately.</p>
+                    </div>
+                    <div
+                        className="bg-bg-card border border-white/5 rounded-xl p-8 transition-all duration-200 cursor-pointer hover:-translate-y-1 hover:shadow-xl hover:border-primary group"
+                        onClick={handleStartExamSetup}
+                    >
+                        <div className="text-4xl mb-4 text-primary transition-transform">
+                            <i className="fa-solid fa-stopwatch"></i>
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">Exam Simulator</h3>
+                        <p className="text-text-muted">Timed exam mode simulating real test conditions. Random questions from all sets.</p>
                     </div>
                 </div>
             )}

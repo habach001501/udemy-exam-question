@@ -45,20 +45,22 @@ const ReviewView = ({ questions, answers, readOnly = false }) => {
             {/* Top Bar Navigation */}
             <aside className="relative w-full h-auto flex flex-col bg-bg-card border-b border-white/10 shrink-0 z-10 py-3 gap-3">
                 <div className="flex items-center justify-between px-6">
-                    <div className="flex bg-bg-dark rounded-lg p-1 border border-white/10">
-                        <button
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${!interactiveMode ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:text-text-main'}`}
-                            onClick={() => setInteractiveMode(false)}
-                        >
-                            Study
-                        </button>
-                        <button
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${interactiveMode ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:text-text-main'}`}
-                            onClick={() => setInteractiveMode(true)}
-                        >
-                            Practice
-                        </button>
-                    </div>
+                    {!readOnly && (
+                        <div className="flex bg-bg-dark rounded-lg p-1 border border-white/10">
+                            <button
+                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${!interactiveMode ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:text-text-main'}`}
+                                onClick={() => setInteractiveMode(false)}
+                            >
+                                Study
+                            </button>
+                            <button
+                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${interactiveMode ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:text-text-main'}`}
+                                onClick={() => setInteractiveMode(true)}
+                            >
+                                Practice
+                            </button>
+                        </div>
+                    )}
 
                     {/* Filter Buttons */}
                     <div className="flex gap-2">

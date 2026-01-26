@@ -27,7 +27,7 @@ const Home = () => {
                         key={course.id}
                         className="bg-bg-card border border-white/5 rounded-xl p-8 transition-all duration-200 cursor-pointer relative overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:border-primary group"
                     >
-                        <div className="text-4xl mb-4 text-primary transition-transform group-hover:scale-110 duration-200">
+                        <div className="text-4xl mb-4 text-primary transition-transform duration-200">
                             <i className={`fa-solid ${course.icon}`}></i>
                         </div>
                         <h3 className="text-2xl font-bold mb-2">{course.title}</h3>
