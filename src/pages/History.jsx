@@ -1,13 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import ReviewView from '../components/ReviewView';
+import { getHistory } from '../services/api';
 
 const History = () => {
     const [history, setHistory] = useState([]);
     const [selectedAttempt, setSelectedAttempt] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const h = JSON.parse(localStorage.getItem('cp_history') || '[]');
-        setHistory(h);
+        const loadHistory = async () => {
+            setLoading(true);
+            const h = await getHistory();
+            setHistory(h);
+            setLoading(false);
+        };
+        loadHistory();
     }, []);
 
     const exportHistory = () => {
@@ -18,6 +25,16 @@ const History = () => {
         a.download = 'cloudpro-history.json';
         a.click();
     };
+
+    if (loading) {
+        return (
+            <div className="max-w-[1200px] mx-auto px-4 py-8 animate-fade-in">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-text-muted bg-clip-text text-transparent mb-8">
+                    Loading History...
+                </h1>
+            </div>
+        );
+    }
 
     if (selectedAttempt) {
         return (

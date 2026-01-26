@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useQuiz } from '../context/QuizContext';
 import { useNavigate } from 'react-router-dom';
 import ReviewView from '../components/ReviewView';
+import { addHistory, getLatestResult, saveLatestResult } from '../services/api';
 
 const Result = () => {
     const { state, dispatch } = useQuiz();
@@ -11,61 +12,64 @@ const Result = () => {
     const [showReview, setShowReview] = useState(false);
 
     useEffect(() => {
-        if (!session.active && !stats) {
-            const saved = localStorage.getItem('latest_result');
-            if (saved) {
-                setStats(JSON.parse(saved));
-            } else {
-                navigate('/');
-            }
-            return;
-        }
-
-        if (session.active && !stats) {
-            let score = 0;
-            let incorrect = 0;
-            let unanswered = 0;
-            const total = session.questions.length;
-
-            session.questions.forEach(q => {
-                const userAns = (session.answers[q.id] || []);
-                const userAnsStr = userAns.sort().join('');
-                const correctAnsStr = (q.correct_response || []).sort().join('');
-
-                if (userAns.length === 0) {
-                    unanswered++;
-                } else if (userAnsStr === correctAnsStr) {
-                    score++;
+        const loadOrCalculateStats = async () => {
+            if (!session.active && !stats) {
+                const saved = await getLatestResult();
+                if (saved) {
+                    setStats(saved);
                 } else {
-                    incorrect++;
+                    navigate('/');
                 }
-            });
+                return;
+            }
 
-            const percent = Math.round((score / total) * 100);
-            const duration = (session.endTime || new Date()) - session.startTime;
+            if (session.active && !stats) {
+                let score = 0;
+                let incorrect = 0;
+                let unanswered = 0;
+                const total = session.questions.length;
 
-            const resultData = {
-                id: Date.now().toString(),
-                date: new Date().toISOString(),
-                course: currentCourse ? currentCourse.id : 'Unknown',
-                mode: session.mode,
-                score,
-                incorrect,
-                unanswered,
-                total,
-                percent,
-                duration,
-                questions: session.questions,
-                answers: session.answers
-            };
+                session.questions.forEach(q => {
+                    const userAns = (session.answers[q.id] || []);
+                    const userAnsStr = userAns.sort().join('');
+                    const correctAnsStr = (q.correct_response || []).sort().join('');
 
-            setStats(resultData);
+                    if (userAns.length === 0) {
+                        unanswered++;
+                    } else if (userAnsStr === correctAnsStr) {
+                        score++;
+                    } else {
+                        incorrect++;
+                    }
+                });
 
-            const history = JSON.parse(localStorage.getItem('cp_history') || '[]');
-            history.unshift(resultData);
-            localStorage.setItem('cp_history', JSON.stringify(history));
-            localStorage.setItem('latest_result', JSON.stringify(resultData));
-        }
+                const percent = Math.round((score / total) * 100);
+                const duration = (session.endTime || new Date()) - session.startTime;
+
+                const resultData = {
+                    id: Date.now().toString(),
+                    date: new Date().toISOString(),
+                    course: currentCourse ? currentCourse.id : 'Unknown',
+                    mode: session.mode,
+                    score,
+                    incorrect,
+                    unanswered,
+                    total,
+                    percent,
+                    duration,
+                    questions: session.questions,
+                    answers: session.answers
+                };
+
+                setStats(resultData);
+
+                // Save to API (with localStorage fallback)
+                await addHistory(resultData);
+                await saveLatestResult(resultData);
+            }
+        };
+
+        loadOrCalculateStats();
     }, [session, stats, navigate, currentCourse]);
 
     if (!stats) return null;
