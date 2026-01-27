@@ -5,7 +5,7 @@ const Header = () => {
     return (
         <header className="bg-bg-dark/90 backdrop-blur-md border-b border-white/10 sticky top-0 z-50 px-8 py-4 flex justify-between items-center">
             <Link to="/" className="text-2xl font-bold bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent cursor-pointer no-underline">
-                <i className="fa-solid fa-cloud"></i> CloudPro Simulator
+                <i className="fa-solid fa-cloud"></i> Cloud Em Hạ Simulator
             </Link>
             <nav>
                 <Link to="/history">
