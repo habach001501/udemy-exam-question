@@ -8,8 +8,10 @@ const ReviewView = ({ questions, answers, readOnly = false }) => {
     const initialAnswers = answers || state.session.answers || {};
 
     // Track current answers for highlighting, initializing from props/session
+    // Track current answers for highlighting, initializing from props/session
     const [currentAnswers, setCurrentAnswers] = useState(initialAnswers);
     const [interactiveMode, setInteractiveMode] = useState(true);
+    const [revealedQuestions, setRevealedQuestions] = useState({});
     const [filter, setFilter] = useState('all'); // all, correct, incorrect, unanswered
 
     const getQuestionStatus = (q) => {
@@ -18,6 +20,13 @@ const ReviewView = ({ questions, answers, readOnly = false }) => {
 
         if (!userAns) return 'unanswered';
         return userAns === correctAns ? 'correct' : 'incorrect';
+    };
+
+    const handleReveal = (qId) => {
+        setRevealedQuestions(prev => ({
+            ...prev,
+            [qId]: true
+        }));
     };
 
     const filteredQuestions = sessionQuestions.map((q, idx) => ({ ...q, originalIndex: idx })).filter(q => {
@@ -61,7 +70,39 @@ const ReviewView = ({ questions, answers, readOnly = false }) => {
                             </button>
                         </div>
                     )}
+                    <div className="flex overflow-x-auto mx-4 items-center gap-2 px-2 thin-scrollbar scroll-smooth pb-2">
+                        {filteredQuestions.map((q) => {
+                            const status = getQuestionStatus(q);
+                            const isRevealed = !interactiveMode || revealedQuestions[q.id];
+                            let statusColor = "bg-white/5 text-text-muted border-transparent";
 
+                            if (currentAnswers[q.id]?.length > 0) {
+                                if (!isRevealed) {
+                                    // Answered but not revealed (Practice Mode) -> Blue
+                                    statusColor = "!bg-primary/20 !text-primary font-bold !border-primary/50";
+                                } else {
+                                    // Revealed or Study Mode -> Show Correct/Incorrect
+                                    if (status === 'correct') statusColor = "!bg-success/20 !text-success font-bold !border-success/50";
+                                    else if (status === 'incorrect') statusColor = "!bg-danger/20 !text-danger font-bold !border-danger/50";
+                                }
+                            } else if (status === 'unanswered') {
+                                // Neutral
+                            }
+
+                            return (
+                                <div
+                                    key={q.originalIndex}
+                                    id={`dot-${q.originalIndex}`}
+                                    className={`w-8 h-8 shrink-0 flex items-center justify-center rounded-md cursor-pointer text-xs hover:bg-white/10 transition-all border
+                                    ${statusColor}
+                                `}
+                                    onClick={() => scrollToCard(q.originalIndex)}
+                                >
+                                    {q.originalIndex + 1}
+                                </div>
+                            );
+                        })}
+                    </div>
                     {/* Filter Buttons */}
                     <div className="flex gap-2">
                         {['all', 'correct', 'incorrect', 'unanswered'].map(f => (
@@ -84,33 +125,7 @@ const ReviewView = ({ questions, answers, readOnly = false }) => {
                     </div>
                 </div>
 
-                <div className="flex overflow-x-auto mx-4 items-center gap-2 px-2 thin-scrollbar scroll-smooth pb-2">
-                    {filteredQuestions.map((q) => {
-                        const status = getQuestionStatus(q);
-                        let statusColor = "bg-white/5 text-text-muted border-transparent";
 
-                        if (currentAnswers[q.id]?.length > 0) {
-                            if (status === 'correct') statusColor = "!bg-success/20 !text-success font-bold !border-success/50";
-                            else if (status === 'incorrect') statusColor = "!bg-danger/20 !text-danger font-bold !border-danger/50";
-                        } else if (status === 'unanswered') { // Only show yellow if it's explicitly unanswered and we care? 
-                            // Actually, user wants to see what is right/wrong.
-                            // If unanwsered, it's neutral.
-                        }
-
-                        return (
-                            <div
-                                key={q.originalIndex}
-                                id={`dot-${q.originalIndex}`}
-                                className={`w-8 h-8 shrink-0 flex items-center justify-center rounded-md cursor-pointer text-xs hover:bg-white/10 transition-all border
-                                    ${statusColor}
-                                `}
-                                onClick={() => scrollToCard(q.originalIndex)}
-                            >
-                                {q.originalIndex + 1}
-                            </div>
-                        );
-                    })}
-                </div>
             </aside>
 
             {/* Scrollable Area */}
@@ -121,17 +136,22 @@ const ReviewView = ({ questions, answers, readOnly = false }) => {
                             No questions found for this filter.
                         </div>
                     ) : (
-                        filteredQuestions.map((q) => (
-                            <ReviewCard
-                                key={q.originalIndex}
-                                question={q}
-                                index={q.originalIndex}
-                                interactiveMode={interactiveMode}
-                                selected={currentAnswers[q.id] || []}
-                                readOnly={readOnly}
-                                onSelectionChange={handleAnswerChange}
-                            />
-                        ))
+                        filteredQuestions.map((q) => {
+                            const isRevealed = !interactiveMode || revealedQuestions[q.id];
+                            return (
+                                <ReviewCard
+                                    key={q.originalIndex}
+                                    question={q}
+                                    index={q.originalIndex}
+                                    interactiveMode={interactiveMode}
+                                    selected={currentAnswers[q.id] || []}
+                                    readOnly={readOnly}
+                                    revealed={isRevealed}
+                                    onSelectionChange={handleAnswerChange}
+                                    onReveal={() => handleReveal(q.id)}
+                                />
+                            );
+                        })
                     )}
                 </div>
             </div>
