@@ -128,7 +128,7 @@ const ReviewCard = ({ question, index, interactiveMode, selected = [], readOnly 
                     <h4 className="text-success mb-2 flex items-center gap-2 font-bold">
                         <i className="fa-solid fa-circle-check"></i> Explanation
                     </h4>
-                    <div className="[&>p]:mb-2 [&>img]:max-w-full [&>img]:rounded-lg" dangerouslySetInnerHTML={{ __html: question.prompt.explanation }}></div>
+                    <div className="[&>p]:mb-2 [&>img]:max-w-full [&>img]:rounded-lg break-words whitespace-pre-wrap text-sm" dangerouslySetInnerHTML={{ __html: question.prompt.explanation }}></div>
                 </div>
             )}
 
