@@ -129,7 +129,7 @@ const ReviewView = ({ questions, answers, readOnly = false }) => {
             </aside>
 
             {/* Scrollable Area */}
-            <div className="flex-1 w-full overflow-x-auto overflow-y-hidden p-6 bg-bg-dark thin-scrollbar">
+            <div className="flex-1 w-full overflow-x-auto overflow-y-hidden py-3 bg-bg-dark thin-scrollbar">
                 <div className="flex flex-row h-full w-max gap-6">
                     {filteredQuestions.length === 0 ? (
                         <div className="flex items-center justify-center w-[90vw] h-full text-text-muted">
