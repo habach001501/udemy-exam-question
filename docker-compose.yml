@@ -4,7 +4,7 @@ services:
     container_name: exam-backend
     restart: unless-stopped
     volumes:
-      - history_data:/app/data
+      - ./backend/data:/app/data
     environment:
       - DEBUG=False
       - DJANGO_SECRET_KEY=your-production-secret-key-change-this
@@ -25,7 +25,3 @@ services:
 networks:
   exam-network:
     driver: bridge
-
-volumes:
-  history_data:
-    driver: local

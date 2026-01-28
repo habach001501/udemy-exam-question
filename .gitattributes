@@ -1,0 +1,5 @@
+# Ensure history.json is treated as text and uses LF line endings
+backend/data/history.json text eol=lf
+
+# If the file gets too large, you can enable Git LFS later:
+# backend/data/history.json filter=lfs diff=lfs merge=lfs -text
