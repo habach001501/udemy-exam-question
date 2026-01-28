@@ -102,6 +102,8 @@ const Result = () => {
           questions={stats.questions}
           answers={stats.answers}
           readOnly={true}
+          isHistoryShow={true}
+
         />
       </div>
     );

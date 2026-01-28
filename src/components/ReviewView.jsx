@@ -77,6 +77,7 @@ const ReviewView = ({ questions, answers, readOnly = false, isHistoryShow = fals
                             console.log("isRevealed: ", isRevealed);
                             console.log("currentAnswers: ", currentAnswers);
                             console.log("revealedQuestions: ", revealedQuestions);
+                            console.log("isHistoryShow: ", isHistoryShow);
                             
                             let statusColor = "bg-white/5 text-text-muted border-transparent";
 
