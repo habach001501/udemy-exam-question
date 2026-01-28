@@ -94,7 +94,7 @@ const ExamView = () => {
                         </div>
 
                         <div
-                            className="text-[15px] leading-relaxed mb-8 [&>p]:mb-4 [&>img]:max-w-full [&>img]:rounded-lg [&>img]:border [&>img]:border-white/10 [&>img]:my-4"
+                            className="text-[20px] leading-relaxed mb-8 [&>p]:mb-4 [&>img]:max-w-full [&>img]:rounded-lg [&>img]:border [&>img]:border-white/10 [&>img]:my-4"
                             dangerouslySetInnerHTML={{ __html: currentQ.prompt.question }}
                         ></div>
 
@@ -105,7 +105,7 @@ const ExamView = () => {
                                 return (
                                     <div
                                         key={idx}
-                                        className={`flex text-[14px] gap-4 p-4 bg-white/5 border border-white/5 rounded-lg cursor-pointer transition-all hover:bg-white/10 text-base
+                                        className={`flex text-[16px] gap-4 p-4 bg-white/5 border border-white/5 rounded-lg cursor-pointer transition-all hover:bg-white/10 text-base
                                             ${isSelected ? '!bg-primary/10 !border-primary' : ''}
                                         `}
                                         onClick={() => handleAnswer(letter, currentQ.correct_response.length > 1)}
