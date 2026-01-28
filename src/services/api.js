@@ -81,16 +81,34 @@ export const saveLatestResult = async (result) => {
  * Delete a history record
  */
 export const deleteHistory = async (recordId) => {
+    let success = false;
+
+    // Try API
     try {
         const response = await fetch(`${API_BASE_URL}/history/${recordId}/`, {
             method: 'DELETE',
         });
-        if (!response.ok && response.status !== 204) {
-            throw new Error('Failed to delete history');
+        if (response.ok || response.status === 204) {
+            success = true;
         }
-        return true;
     } catch (error) {
-        console.error('Error deleting history:', error);
-        return false;
+        console.error('Error deleting history from API:', error);
     }
+
+    // Always try to delete from localStorage as well (fallback or cleanup)
+    try {
+        const history = JSON.parse(localStorage.getItem('cp_history') || '[]');
+        const initialLength = history.length;
+        const newHistory = history.filter(h => h.id !== String(recordId)); // Ensure ID comparison works (string vs num)
+
+        if (newHistory.length !== initialLength) {
+            localStorage.setItem('cp_history', JSON.stringify(newHistory));
+            // If API failed but we found it locally, count as success
+            success = true;
+        }
+    } catch (error) {
+        console.error('Error deleting history from localStorage:', error);
+    }
+
+    return success;
 };

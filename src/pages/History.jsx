@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ReviewView from '../components/ReviewView';
-import { getHistory } from '../services/api';
+import { getHistory, deleteHistory } from '../services/api';
 
 const History = () => {
     const [history, setHistory] = useState([]);
@@ -24,6 +24,17 @@ const History = () => {
         a.href = url;
         a.download = 'cloudpro-history.json';
         a.click();
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this history record? This action cannot be undone.')) {
+            const success = await deleteHistory(id);
+            if (success) {
+                setHistory(prev => prev.filter(h => h.id !== id));
+            } else {
+                alert('Failed to delete history record.');
+            }
+        }
     };
 
     if (loading) {
@@ -57,6 +68,7 @@ const History = () => {
                     questions={selectedAttempt.questions}
                     answers={selectedAttempt.answers}
                     readOnly={true}
+                    isHistoryShow={true}
                 />
             </div>
         );
@@ -107,12 +119,24 @@ const History = () => {
                                     </td>
                                     <td className="p-4">
                                         {h.questions ? (
-                                            <button
-                                                className="px-3 py-1 bg-white/5 hover:bg-primary hover:text-white rounded transition-all text-xs"
-                                                onClick={() => setSelectedAttempt(h)}
-                                            >
-                                                Review
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    className="px-3 py-1 bg-white/5 hover:bg-primary hover:text-white rounded transition-all text-xs hover:cursor-pointer"
+                                                    onClick={() => setSelectedAttempt(h)}
+                                                >
+                                                    Review
+                                                </button>
+                                                <button
+                                                    className="px-3 py-1 bg-white/5 hover:bg-red-500 hover:text-white rounded transition-all text-xs text-danger hover:cursor-pointer"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDelete(h.id);
+                                                    }}
+                                                    title="Delete Result"
+                                                >
+                                                    <i className="fa-solid fa-trash"></i>
+                                                </button>
+                                            </div>
                                         ) : (
                                             <span className="text-text-muted text-xs italic">No data</span>
                                         )}

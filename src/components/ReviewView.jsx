@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuiz } from '../context/QuizContext';
 import ReviewCard from './ReviewCard';
 
-const ReviewView = ({ questions, answers, readOnly = false }) => {
+const ReviewView = ({ questions, answers, readOnly = false, isHistoryShow = false }) => {
     const { state } = useQuiz();
     const sessionQuestions = questions || state.session.questions;
     const initialAnswers = answers || state.session.answers || {};
@@ -74,10 +74,14 @@ const ReviewView = ({ questions, answers, readOnly = false }) => {
                         {filteredQuestions.map((q) => {
                             const status = getQuestionStatus(q);
                             const isRevealed = !interactiveMode || revealedQuestions[q.id];
+                            console.log("isRevealed: ", isRevealed);
+                            console.log("currentAnswers: ", currentAnswers);
+                            console.log("revealedQuestions: ", revealedQuestions);
+                            
                             let statusColor = "bg-white/5 text-text-muted border-transparent";
 
                             if (currentAnswers[q.id]?.length > 0) {
-                                if (!isRevealed) {
+                                if (!isRevealed && !isHistoryShow) {
                                     // Answered but not revealed (Practice Mode) -> Blue
                                     statusColor = "!bg-primary/20 !text-primary font-bold !border-primary/50";
                                 } else {
