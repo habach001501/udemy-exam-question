@@ -35,6 +35,13 @@ const ReviewView = ({ questions, answers, readOnly = false, isHistoryShow = fals
         return status === filter;
     });
 
+    const counts = {
+        all: sessionQuestions.length,
+        correct: sessionQuestions.filter(q => getQuestionStatus(q) === 'correct').length,
+        incorrect: sessionQuestions.filter(q => getQuestionStatus(q) === 'incorrect').length,
+        unanswered: sessionQuestions.filter(q => getQuestionStatus(q) === 'unanswered').length,
+    };
+
     const handleAnswerChange = (qId, selected) => {
         setCurrentAnswers(prev => ({
             ...prev,
@@ -53,7 +60,7 @@ const ReviewView = ({ questions, answers, readOnly = false, isHistoryShow = fals
         <div className={`flex flex-col h-full gap-0 overflow-hidden ${interactiveMode ? 'interactive-mode' : ''}`}>
             {/* Top Bar Navigation */}
             <aside className="relative w-full h-auto flex flex-col bg-bg-card border-b border-white/10 shrink-0 z-10 py-3 gap-3">
-                <div className="flex items-center justify-between px-6">
+                <div className="flex items-center justify-between px-6 min-h-[50px]">
                     {!readOnly && (
                         <div className="flex bg-bg-dark rounded-lg p-1 border border-white/10">
                             <button
@@ -78,7 +85,7 @@ const ReviewView = ({ questions, answers, readOnly = false, isHistoryShow = fals
                             console.log("currentAnswers: ", currentAnswers);
                             console.log("revealedQuestions: ", revealedQuestions);
                             console.log("isHistoryShow: ", isHistoryShow);
-                            
+
                             let statusColor = "bg-white/5 text-text-muted border-transparent";
 
                             if (currentAnswers[q.id]?.length > 0) {
@@ -109,12 +116,12 @@ const ReviewView = ({ questions, answers, readOnly = false, isHistoryShow = fals
                         })}
                     </div>
                     {/* Filter Buttons */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-4 mr-2">
                         {['all', 'correct', 'incorrect', 'unanswered'].map(f => (
                             <button
                                 key={f}
                                 onClick={() => setFilter(f)}
-                                className={`px-3 py-1 rounded-md text-xs font-semibold uppercase border transition-all
+                                className={`px-3 py-1 rounded-md text-xs font-semibold hover:cursor-pointer uppercase border transition-all relative
                                     ${filter === f
                                         ? 'bg-white/10 text-white border-white/20'
                                         : 'text-text-muted border-transparent hover:bg-white/5'
@@ -125,6 +132,11 @@ const ReviewView = ({ questions, answers, readOnly = false, isHistoryShow = fals
                                 `}
                             >
                                 {f}
+                                {counts[f] > 0 && (
+                                    <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-danger text-white text-[10px] font-bold shadow-sm border border-bg-card z-10">
+                                        {counts[f]}
+                                    </span>
+                                )}
                             </button>
                         ))}
                     </div>
