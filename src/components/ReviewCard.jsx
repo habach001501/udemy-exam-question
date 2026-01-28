@@ -1,19 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
-const ReviewCard = ({ question, index, interactiveMode, selected = [], readOnly = false, onSelectionChange }) => {
-    const [revealed, setRevealed] = useState(false);
-
-    useEffect(() => {
-        if (!interactiveMode) {
-            setRevealed(false);
-        }
-    }, [interactiveMode]);
-
-    useEffect(() => {
-        if (readOnly) {
-            setRevealed(true);
-        }
-    }, [readOnly]);
+const ReviewCard = ({ question, index, interactiveMode, selected = [], readOnly = false, revealed = false, onSelectionChange, onReveal }) => {
+    // Removed local state 'revealed' to rely on props from parent
 
     const handleOptionClick = (letter, isMulti) => {
         if (!interactiveMode || readOnly) return;
@@ -36,18 +24,8 @@ const ReviewCard = ({ question, index, interactiveMode, selected = [], readOnly 
     };
 
     const handleReveal = () => {
-        setRevealed(true);
-        const dot = document.getElementById(`dot-${index}`);
-        if (dot) {
-            // Manual class manipulation for dot since it's outside
-            dot.classList.remove('border-transparent');
-            const userAns = selected.sort().join('');
-            const correctAns = question.correct_response.sort().join('');
-            if (userAns === correctAns) {
-                dot.className = "w-8 h-8 shrink-0 flex items-center justify-center rounded-md cursor-pointer text-xs transition-all border border-success bg-success text-white";
-            } else {
-                dot.className = "w-8 h-8 shrink-0 flex items-center justify-center rounded-md cursor-pointer text-xs transition-all border border-danger bg-danger text-white";
-            }
+        if (onReveal) {
+            onReveal();
         }
     };
 

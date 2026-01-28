@@ -37,8 +37,16 @@ const ReviewView = ({ questions, answers, readOnly = false, isHistoryShow = fals
 
     const counts = {
         all: sessionQuestions.length,
-        correct: sessionQuestions.filter(q => getQuestionStatus(q) === 'correct').length,
-        incorrect: sessionQuestions.filter(q => getQuestionStatus(q) === 'incorrect').length,
+        correct: sessionQuestions.filter(q => {
+            const status = getQuestionStatus(q);
+            const isVisible = !interactiveMode || revealedQuestions[q.id] || isHistoryShow;
+            return status === 'correct' && isVisible;
+        }).length,
+        incorrect: sessionQuestions.filter(q => {
+            const status = getQuestionStatus(q);
+            const isVisible = !interactiveMode || revealedQuestions[q.id] || isHistoryShow;
+            return status === 'incorrect' && isVisible;
+        }).length,
         unanswered: sessionQuestions.filter(q => getQuestionStatus(q) === 'unanswered').length,
     };
 
@@ -59,81 +67,96 @@ const ReviewView = ({ questions, answers, readOnly = false, isHistoryShow = fals
     return (
         <div className={`flex flex-col h-full gap-0 overflow-hidden ${interactiveMode ? 'interactive-mode' : ''}`}>
             {/* Top Bar Navigation */}
-            <aside className="relative w-full h-auto flex flex-col bg-bg-card border-b border-white/10 shrink-0 z-10 py-3 gap-3">
-                <div className="flex items-center justify-between px-6 min-h-[50px]">
+            {/* Top Bar Navigation */}
+            <aside className="relative w-full h-auto flex flex-col shrink-0 z-10 py-2 gap-4 px-6 bg-gradient-to-b from-bg-dark to-transparent">
+                <div className="flex items-center justify-between gap-4">
+                    {/* Left Block: Mode Switcher (only if not readonly) */}
                     {!readOnly && (
-                        <div className="flex bg-bg-dark rounded-lg p-1 border border-white/10">
+                        <div className="flex bg-bg-card border border-white/10 rounded-xl p-1.5 shadow-xl shrink-0 backdrop-blur-md">
                             <button
-                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${!interactiveMode ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:text-text-main'}`}
+                                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 ${!interactiveMode ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-text-muted hover:text-white hover:bg-white/5'}`}
                                 onClick={() => setInteractiveMode(false)}
                             >
-                                Study
+                                <i className="fa-solid fa-book-open text-xs"></i>Study
                             </button>
                             <button
-                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${interactiveMode ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:text-text-main'}`}
+                                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 ${interactiveMode ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-text-muted hover:text-white hover:bg-white/5'}`}
                                 onClick={() => setInteractiveMode(true)}
                             >
-                                Practice
+                                <i className="fa-solid fa-pen-to-square text-xs"></i>Practice
                             </button>
                         </div>
                     )}
-                    <div className="flex overflow-x-auto mx-4 items-center gap-2 px-2 thin-scrollbar scroll-smooth pb-2">
-                        {filteredQuestions.map((q) => {
-                            const status = getQuestionStatus(q);
-                            const isRevealed = !interactiveMode || revealedQuestions[q.id];
-                            console.log("isRevealed: ", isRevealed);
-                            console.log("currentAnswers: ", currentAnswers);
-                            console.log("revealedQuestions: ", revealedQuestions);
-                            console.log("isHistoryShow: ", isHistoryShow);
 
-                            let statusColor = "bg-white/5 text-text-muted border-transparent";
+                    {/* Center Block: Question Navigation */}
+                    <div className="flex-1 flex overflow-hidden bg-bg-card border border-white/10 rounded-xl shadow-xl h-[56px] items-center relative group backdrop-blur-md">
+                        <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-bg-card to-transparent z-10 pointer-events-none"></div>
 
-                            if (currentAnswers[q.id]?.length > 0) {
-                                if (!isRevealed && !isHistoryShow) {
-                                    // Answered but not revealed (Practice Mode) -> Blue
-                                    statusColor = "!bg-primary/20 !text-primary font-bold !border-primary/50";
-                                } else {
-                                    // Revealed or Study Mode -> Show Correct/Incorrect
-                                    if (status === 'correct') statusColor = "!bg-success/20 !text-success font-bold !border-success/50";
-                                    else if (status === 'incorrect') statusColor = "!bg-danger/20 !text-danger font-bold !border-danger/50";
+                        <div className="flex overflow-x-auto items-center gap-2 px-6 w-full h-full thin-scrollbar scroll-smooth">
+                            {filteredQuestions.map((q) => {
+                                const status = getQuestionStatus(q);
+                                const isRevealed = !interactiveMode || revealedQuestions[q.id];
+
+                                let statusColor = "bg-white/5 text-text-muted border-transparent hover:bg-white/10";
+                                let icon = null;
+
+                                if (currentAnswers[q.id]?.length > 0) {
+                                    if (!isRevealed && !isHistoryShow) {
+                                        statusColor = "!bg-primary/20 !text-primary font-bold !border-primary/50 shadow-[0_0_10px_rgba(59,130,246,0.15)]";
+                                        icon = <div className="w-1.5 h-1.5 rounded-full bg-primary mb-0.5 animate-pulse"></div>;
+                                    } else {
+                                        if (status === 'correct') {
+                                            statusColor = "!bg-success/20 !text-success font-bold !border-success/50 shadow-[0_0_10px_rgba(16,185,129,0.15)]";
+                                            icon = <i className="fa-solid fa-check text-[9px]"></i>;
+                                        } else if (status === 'incorrect') {
+                                            statusColor = "!bg-danger/20 !text-danger font-bold !border-danger/50 shadow-[0_0_10px_rgba(239,68,68,0.15)]";
+                                            icon = <i className="fa-solid fa-xmark text-[9px]"></i>;
+                                        }
+                                    }
                                 }
-                            } else if (status === 'unanswered') {
-                                // Neutral
-                            }
 
-                            return (
-                                <div
-                                    key={q.originalIndex}
-                                    id={`dot-${q.originalIndex}`}
-                                    className={`w-8 h-8 shrink-0 flex items-center justify-center rounded-md cursor-pointer text-xs hover:bg-white/10 transition-all border
-                                    ${statusColor}
-                                `}
-                                    onClick={() => scrollToCard(q.originalIndex)}
-                                >
-                                    {q.originalIndex + 1}
-                                </div>
-                            );
-                        })}
+                                return (
+                                    <div
+                                        key={q.originalIndex}
+                                        id={`dot-${q.originalIndex}`}
+                                        className={`min-w-[36px] h-9 shrink-0 flex flex-col items-center justify-center rounded-lg cursor-pointer text-xs transition-all duration-300 border transform hover:scale-110 active:scale-95 group/dot
+                                        ${statusColor}
+                                    `}
+                                        onClick={() => scrollToCard(q.originalIndex)}
+                                    >
+                                        <span className="leading-none mt-0.5 font-mono">{q.originalIndex + 1}</span>
+                                        {icon}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
-                    {/* Filter Buttons */}
-                    <div className="flex gap-4 mr-2">
+
+                    {/* Right Block: Filters */}
+                    <div className="bg-bg-card border border-white/10 rounded-xl p-1.5 flex gap-1 shadow-xl shrink-0 backdrop-blur-md">
                         {['all', 'correct', 'incorrect', 'unanswered'].map(f => (
                             <button
                                 key={f}
                                 onClick={() => setFilter(f)}
-                                className={`px-3 py-1 rounded-md text-xs font-semibold hover:cursor-pointer uppercase border transition-all relative
+                                className={`px-4 py-2 rounded-lg text-[11px] font-bold uppercase hover:cursor-pointer border transition-all relative group overflow-hidden
                                     ${filter === f
-                                        ? 'bg-white/10 text-white border-white/20'
-                                        : 'text-text-muted border-transparent hover:bg-white/5'
+                                        ? 'bg-white/10 text-white border-white/20 shadow-inner'
+                                        : 'text-text-muted border-transparent hover:bg-white/5 hover:text-white'
                                     }
-                                    ${f === 'correct' && filter === f ? '!bg-success/20 !text-success !border-success/50' : ''}
-                                    ${f === 'incorrect' && filter === f ? '!bg-danger/20 !text-danger !border-danger/50' : ''}
-                                    ${f === 'unanswered' && filter === f ? '!bg-warning/20 !text-warning !border-warning/50' : ''}
+                                    ${f === 'correct' && filter === f ? '!bg-success/10 !text-success !border-success/20' : ''}
+                                    ${f === 'incorrect' && filter === f ? '!bg-danger/10 !text-danger !border-danger/20' : ''}
+                                    ${f === 'unanswered' && filter === f ? '!bg-warning/10 !text-warning !border-warning/20' : ''}
                                 `}
                             >
-                                {f}
+                                <span className="relative z-10">{f}</span>
+                                {filter === f && <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-50"></div>}
+
                                 {counts[f] > 0 && (
-                                    <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-danger text-white text-[10px] font-bold shadow-sm border border-bg-card z-10">
+                                    <span className={`absolute top-0.5 right-0.5 text-[7px] flex items-center justify-center min-w-[16px] h-[16px] px-[2px] rounded-full font-extrabold shadow-sm border border-bg-card z-20 transition-transform duration-300 group-hover:scale-110
+                                        ${f === 'correct' ? 'bg-success text-bg-dark' :
+                                            f === 'incorrect' ? 'bg-danger text-white' :
+                                                f === 'unanswered' ? 'bg-warning text-bg-dark' : 'bg-primary text-white'}
+                                    `}>
                                         {counts[f]}
                                     </span>
                                 )}
