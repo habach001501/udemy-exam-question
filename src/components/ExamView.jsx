@@ -37,7 +37,7 @@ const QuestionContent = memo(function QuestionContent({
       </div>
 
       <div
-        className="text-[20px] leading-relaxed mb-8 text-blue-900 font-bold [&>p]:mb-4 [&>img]:max-w-full [&>img]:rounded-xl [&>img]:border [&>img]:border-amber-200 [&>img]:my-6 [&>img]:shadow-md"
+        className="text-[18px] leading-relaxed mb-8 text-blue-900 font-semiBold [&>p]:mb-4 [&>img]:max-w-full [&>img]:rounded-xl [&>img]:border [&>img]:border-amber-200 [&>img]:my-6 [&>img]:shadow-md"
         dangerouslySetInnerHTML={{ __html: currentQ.prompt.question }}
       ></div>
 
@@ -151,7 +151,7 @@ const ExamView = () => {
   }, [dispatch, navigate]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8 items-start h-full pt-4">
+    <div className="grid grid-cols-1 md:grid-cols-[350px_1fr] gap-8 items-start h-full pt-4">
       {/* Sidebar */}
       <aside className="bg-bg-card p-4 rounded-xl flex flex-col h-full max-h-[calc(100vh-100px)] overflow-y-auto border border-white/5">
         <Timer />
