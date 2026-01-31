@@ -17,15 +17,6 @@ const History = () => {
         loadHistory();
     }, []);
 
-    const exportHistory = () => {
-        const blob = new Blob([JSON.stringify(history)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'cloudpro-history.json';
-        a.click();
-    };
-
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this history record? This action cannot be undone.')) {
             const success = await deleteHistory(id);
@@ -129,13 +120,6 @@ const History = () => {
                         </div>
                     </div>
 
-                    <button
-                        className="flex items-center gap-3 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-text-muted hover:text-white transition-all font-semibold shadow-lg group/btn"
-                        onClick={exportHistory}
-                    >
-                        <i className="fa-solid fa-download group-hover/btn:animate-bounce"></i>
-                        Export Data
-                    </button>
                 </div>
             </div>
 
