@@ -111,10 +111,16 @@ const History = () => {
                                     {history.length} Attempts
                                 </span>
                                 {history.length > 0 && (
-                                    <span className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white/5 border border-white/5">
-                                        <i className="fa-solid fa-chart-line text-success"></i>
-                                        {Math.round(history.reduce((acc, curr) => acc + curr.percent, 0) / history.length)}% Avg Score
-                                    </span>
+                                    <>
+                                        <span className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white/5 border border-white/5">
+                                            <i className="fa-solid fa-chart-line text-success"></i>
+                                            {Math.round(history.reduce((acc, curr) => acc + curr.percent, 0) / history.length)}% Avg Score
+                                        </span>
+                                        <span className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white/5 border border-white/5">
+                                            <i className="fa-solid fa-check-double text-blue-400"></i>
+                                            {history.reduce((acc, curr) => acc + (curr.score || 0), 0)}/{history.reduce((acc, curr) => acc + (curr.total || 0), 0)} Correct
+                                        </span>
+                                    </>
                                 )}
                             </div>
                         </div>
