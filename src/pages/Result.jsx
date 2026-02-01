@@ -11,9 +11,16 @@ const Result = () => {
   const [stats, setStats] = useState(null);
   const [showReview, setShowReview] = useState(false);
 
+  /* Fixed: Use useRef to prevent double execution in Strict Mode */
+  const processedRef = React.useRef(false);
+
   useEffect(() => {
     const loadOrCalculateStats = async () => {
+      // Prevent double execution
+      if (processedRef.current) return;
+
       if (!session.active && !stats) {
+        processedRef.current = true;
         const saved = await getLatestResult();
         if (saved) {
           setStats(saved);
@@ -24,6 +31,7 @@ const Result = () => {
       }
 
       if (session.active && !stats) {
+        processedRef.current = true;
         let score = 0;
         let incorrect = 0;
         let unanswered = 0;

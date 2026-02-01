@@ -182,7 +182,7 @@ const ReviewView = ({
 
                 {counts[f] > 0 && (
                   <span
-                    className={`absolute top-0.5 right-0.5 text-[7px] flex items-center justify-center min-w-[16px] h-[16px] px-[2px] rounded-full font-extrabold shadow-sm border border-bg-card z-20 transition-transform duration-300 group-hover:scale-110
+                    className={`absolute top-0.75 right-0.75 text-[10px] flex items-center justify-center min-w-[18px] h-[18px]  rounded-full font-extrabold shadow-sm border border-bg-card z-20 transition-transform duration-300 group-hover:scale-110
                                         ${
                                           f === "correct"
                                             ? "bg-success text-bg-dark"

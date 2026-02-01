@@ -37,11 +37,22 @@ const Dashboard = () => {
         setView('review-setup');
     };
 
+    // Fisher-Yates shuffle for unbiased distribution
+    const shuffleArray = (array) => {
+        const newArr = [...array];
+        for (let i = newArr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+        }
+        return newArr;
+    };
+
     const startExam = () => {
         let pool = [];
         state.availableData.forEach(set => pool = pool.concat(set.questions));
-        pool.sort(() => Math.random() - 0.5);
-        const questions = pool.slice(0, Math.min(examConfig.count, pool.length));
+
+        const shuffled = shuffleArray(pool);
+        const questions = shuffled.slice(0, Math.min(examConfig.count, shuffled.length));
 
         dispatch({
             type: 'START_SESSION',
