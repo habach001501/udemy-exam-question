@@ -1,9 +1,9 @@
-import React, { memo, useMemo } from "react";
+import React, { memo, useMemo, useState } from "react";
 import { useQuiz } from "../context/QuizContext";
 import { useNavigate } from "react-router-dom";
 
 // Tách Timer thành component riêng để chỉ re-render phần này mỗi giây
-const Timer = memo(function Timer() {
+const Timer = memo(function Timer({ isCompact = false }) {
   const { state } = useQuiz();
   const timeLeft = state.session.timeLeft;
 
@@ -12,6 +12,19 @@ const Timer = memo(function Timer() {
     const sec = s % 60;
     return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   };
+
+  const formatMinutesOnly = (s) => {
+    const m = Math.ceil(s / 60);
+    return `${m}`;
+  };
+
+  if (isCompact) {
+    return (
+      <div className="bg-red-500/10 text-danger p-1.5 rounded-lg text-center text-[12px] font-bold mb-2 border border-red-500/20 font-mono w-full">
+        {formatMinutesOnly(timeLeft)}
+      </div>
+    );
+  }
 
   return (
     <div className="bg-red-500/10 text-danger p-4 rounded-lg text-center text-2xl font-bold mb-4 border border-red-500/20 font-mono">
@@ -96,13 +109,14 @@ const QuestionSidebar = memo(function QuestionSidebar({
   currentIndex,
   answers,
   onNavigate,
+  isCompact = false,
 }) {
   return (
-    <div className="grid grid-cols-5 gap-2 overflow-y-auto pr-1">
+    <div className={`${isCompact ? 'flex flex-col gap-0.5 overflow-y-auto flex-1 w-full mt-4' : 'grid grid-cols-5 gap-2 overflow-y-auto pr-1'}`}>
       {questions.map((q, idx) => (
         <div
           key={idx}
-          className={`w-full aspect-square flex items-center justify-center bg-white/5 rounded-md cursor-pointer text-xs text-text-muted border border-transparent hover:bg-white/10 transition-all
+          className={`${isCompact ? 'w-full h-6 flex-shrink-0 text-[10px] mt-1' : 'w-full aspect-square text-xs'} flex items-center justify-center bg-white/5 rounded-md cursor-pointer text-text-muted border border-transparent hover:bg-white/10 transition-all
                                 ${idx === currentIndex ? "!bg-primary !text-white !shadow-[0_0_10px_rgba(59,130,246,0.5)]" : ""}
                                 ${answers[q.id]?.length ? "!bg-primary/20 !text-primary font-bold !border-primary/50" : ""}
                             `}
@@ -119,6 +133,7 @@ const ExamView = () => {
   const { state, dispatch } = useQuiz();
   const { session } = state;
   const navigate = useNavigate();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const currentQ = session.questions[session.currentIndex];
   const userAnswers = session.answers[currentQ.id] || [];
@@ -156,31 +171,75 @@ const ExamView = () => {
   );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[350px_1fr] gap-8 items-start h-full pt-4">
+    <div className={`grid grid-cols-1 ${sidebarCollapsed ? 'md:grid-cols-[80px_1fr]' : 'md:grid-cols-[350px_1fr]'} gap-8 items-start h-full pt-4 transition-all duration-300`}>
       {/* Sidebar */}
-      <aside className="bg-bg-card p-4 rounded-xl flex flex-col h-full max-h-[calc(100vh-100px)] overflow-y-auto border border-white/5">
-        <Timer />
-
+      <aside className={`bg-bg-card p-4 rounded-xl flex flex-col h-full max-h-[calc(100vh-100px)] overflow-y-auto border border-white/5 transition-all duration-300 ${sidebarCollapsed ? 'items-center' : ''} [&::-webkit-scrollbar]:w-[4px] [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full`}>
+        {/* Toggle Button */}
         <button
-          className={`w-full mb-4 py-2 rounded-lg font-semibold transition-all ${session.isPaused ? "bg-success text-white" : "bg-warning text-black"}`}
-          onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
+          className={`w-full mb-2 rounded-lg font-semibold transition-all bg-white/5 hover:bg-white/10 border border-white/10 text-text-muted hover:text-white flex items-center justify-center gap-2 ${sidebarCollapsed ? 'py-1.5 px-2' : 'py-2 px-3'}`}
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
-          {session.isPaused ? "Resume Exam" : "Pause Exam"}
+          <i className={`fa-solid ${sidebarCollapsed ? 'fa-angles-right' : 'fa-angles-left'} transition-transform ${sidebarCollapsed ? 'text-xs' : ''}`}></i>
+          {!sidebarCollapsed && <span>Collapse</span>}
         </button>
 
-        <button
-          className="bg-primary text-white shadow-lg shadow-primary/30 w-full mb-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-all"
-          onClick={handleSubmit}
-        >
-          Submit Exam
-        </button>
+        <Timer isCompact={sidebarCollapsed} />
 
-        <QuestionSidebar
-          questions={session.questions}
-          currentIndex={session.currentIndex}
-          answers={session.answers}
-          onNavigate={handleNavigate}
-        />
+        {!sidebarCollapsed && (
+          <>
+            <button
+              className={`w-full mb-4 py-2 rounded-lg font-semibold transition-all ${session.isPaused ? "bg-success text-white" : "bg-warning text-black"}`}
+              onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
+            >
+              {session.isPaused ? "Resume Exam" : "Pause Exam"}
+            </button>
+
+            <button
+              className="bg-primary text-white shadow-lg shadow-primary/30 w-full mb-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-all"
+              onClick={handleSubmit}
+            >
+              Submit Exam
+            </button>
+
+            <QuestionSidebar
+              questions={session.questions}
+              currentIndex={session.currentIndex}
+              answers={session.answers}
+              onNavigate={handleNavigate}
+            />
+          </>
+        )}
+
+        {sidebarCollapsed && (
+          <>
+            <div className="flex flex-col gap-1 mb-1 w-full">
+              <button
+                className={`w-full h-7 rounded-md text-xs font-semibold transition-all flex items-center justify-center ${session.isPaused ? "bg-success text-white" : "bg-warning text-black"}`}
+                onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
+                title={session.isPaused ? "Resume Exam" : "Pause Exam"}
+              >
+                <i className={`fa-solid ${session.isPaused ? 'fa-play' : 'fa-pause'} text-[10px]`}></i>
+              </button>
+
+              <button
+                className="bg-primary text-white shadow-md shadow-primary/20 w-full h-7 rounded-md text-xs font-semibold hover:bg-blue-600 transition-all flex items-center justify-center"
+                onClick={handleSubmit}
+                title="Submit Exam"
+              >
+                <i className="fa-solid fa-paper-plane text-[10px]"></i>
+              </button>
+            </div>
+
+            <QuestionSidebar
+              questions={session.questions}
+              currentIndex={session.currentIndex}
+              answers={session.answers}
+              onNavigate={handleNavigate}
+              isCompact={true}
+            />
+          </>
+        )}
       </aside>
 
       {/* Question Container */}
