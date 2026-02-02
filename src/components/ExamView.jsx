@@ -150,6 +150,11 @@ const ExamView = () => {
     }
   }, [dispatch, navigate]);
 
+  const handleNavigate = React.useCallback(
+    (idx) => dispatch({ type: "NAVIGATE_QUESTION", payload: idx }),
+    [dispatch],
+  );
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-[350px_1fr] gap-8 items-start h-full pt-4">
       {/* Sidebar */}
@@ -174,10 +179,7 @@ const ExamView = () => {
           questions={session.questions}
           currentIndex={session.currentIndex}
           answers={session.answers}
-          onNavigate={React.useCallback(
-            (idx) => dispatch({ type: "NAVIGATE_QUESTION", payload: idx }),
-            [dispatch],
-          )}
+          onNavigate={handleNavigate}
         />
       </aside>
 
@@ -199,10 +201,7 @@ const ExamView = () => {
               currentQ={currentQ}
               userAnswers={userAnswers}
               handleAnswer={handleAnswer}
-              onNavigate={React.useCallback(
-                (idx) => dispatch({ type: "NAVIGATE_QUESTION", payload: idx }),
-                [dispatch],
-              )}
+              onNavigate={handleNavigate}
             />
           </>
         )}
