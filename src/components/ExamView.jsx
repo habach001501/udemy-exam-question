@@ -176,7 +176,7 @@ const ExamView = () => {
       <aside className={`bg-bg-card p-4 rounded-xl flex flex-col h-full max-h-[calc(100vh-100px)] overflow-y-auto border border-white/5 transition-all duration-300 ${sidebarCollapsed ? 'items-center' : ''} [&::-webkit-scrollbar]:w-[4px] [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full`}>
         {/* Toggle Button */}
         <button
-          className={`w-full mb-2 rounded-lg font-semibold transition-all bg-white/5 hover:bg-white/10 border border-white/10 text-text-muted hover:text-white flex items-center justify-center gap-2 ${sidebarCollapsed ? 'py-1.5 px-2' : 'py-2 px-3'}`}
+          className={`w-full mb-2 rounded-lg font-semibold transition-all bg-white/5 hover:bg-white/10 border border-white/10 text-text-muted hover:text-white flex items-center justify-center gap-2 cursor-pointer ${sidebarCollapsed ? 'py-1.5 px-2' : 'py-2 px-3'}`}
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
@@ -189,14 +189,14 @@ const ExamView = () => {
         {!sidebarCollapsed && (
           <>
             <button
-              className={`w-full mb-4 py-2 rounded-lg font-semibold transition-all ${session.isPaused ? "bg-success text-white" : "bg-warning text-black"}`}
+              className={`w-full mb-4 py-2 rounded-lg font-semibold transition-all cursor-pointer ${session.isPaused ? "bg-success text-white" : "bg-warning text-black"}`}
               onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
             >
               {session.isPaused ? "Resume Exam" : "Pause Exam"}
             </button>
 
             <button
-              className="bg-primary text-white shadow-lg shadow-primary/30 w-full mb-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-all"
+              className="bg-primary text-white shadow-lg shadow-primary/30 w-full mb-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-all cursor-pointer"
               onClick={handleSubmit}
             >
               Submit Exam
@@ -215,7 +215,7 @@ const ExamView = () => {
           <>
             <div className="flex flex-col gap-1 mb-1 w-full">
               <button
-                className={`w-full h-7 rounded-md text-xs font-semibold transition-all flex items-center justify-center ${session.isPaused ? "bg-success text-white" : "bg-warning text-black"}`}
+                className={`w-full h-7 rounded-md text-xs font-semibold transition-all flex items-center justify-center cursor-pointer ${session.isPaused ? "bg-success text-white" : "bg-warning text-black"}`}
                 onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
                 title={session.isPaused ? "Resume Exam" : "Pause Exam"}
               >
@@ -223,7 +223,7 @@ const ExamView = () => {
               </button>
 
               <button
-                className="bg-primary text-white shadow-md shadow-primary/20 w-full h-7 rounded-md text-xs font-semibold hover:bg-blue-600 transition-all flex items-center justify-center"
+                className="bg-primary text-white shadow-md shadow-primary/20 w-full h-7 rounded-md text-xs font-semibold hover:bg-blue-600 transition-all flex items-center justify-center cursor-pointer"
                 onClick={handleSubmit}
                 title="Submit Exam"
               >
