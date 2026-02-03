@@ -85,16 +85,33 @@ const ReviewCard = ({ question, index, interactiveMode, selected = [], readOnly 
                         }
                     }
 
+                    // Determine labels for revealed state
+                    const showYourAnswerLabel = revealed && isSelected;
+                    const showCorrectLabel = revealed && isCorrect;
+
                     return (
                         <div
                             key={idx}
-                            className={`flex text-[14px] gap-4 p-4 rounded-lg border transition-all text-base cursor-pointer hover:bg-white/10 ${bgClass}`}
+                            className={`flex text-[14px] gap-4 p-4 rounded-lg border transition-all text-base cursor-pointer hover:bg-white/10 ${bgClass} relative`}
                             onClick={() => handleOptionClick(letter, question.correct_response.length > 1)}
                         >
                             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 text-sm font-bold ${markerClass}`}>
                                 {letter.toUpperCase()}
                             </div>
                             <div className="flex-1 [&>p]:m-0" dangerouslySetInnerHTML={{ __html: ansHtml }}></div>
+                            {/* Labels */}
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                                {showYourAnswerLabel && (
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isCorrect ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'}`}>
+                                        Your Answer
+                                    </span>
+                                )}
+                                {showCorrectLabel && !isSelected && (
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-success/20 text-success">
+                                        Correct
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     );
                 })}
