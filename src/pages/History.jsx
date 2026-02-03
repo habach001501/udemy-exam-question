@@ -154,14 +154,31 @@ const History = () => {
                     </span>
                     <span className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white/5 border border-white/5">
                       <i className="fa-solid fa-question-circle text-purple-400"></i>
-                      {
-                        new Set(
-                          history.flatMap((h) =>
-                            (h.questions || []).map((q) => q.id)
-                          )
-                        ).size
-                      }{" "}
-                      UQ
+                      {(() => {
+                        // Collect all question attempts: { questionId -> [isCorrect1, isCorrect2, ...] }
+                        const questionResults = {};
+                        history.forEach((h) => {
+                          (h.questions || []).forEach((q) => {
+                            const userAnswer = h.answers?.[q.id] || [];
+                            const correctAnswer = q.correct_response || [];
+                            // Check if answer is correct (arrays must match)
+                            const isCorrect =
+                              JSON.stringify([...userAnswer].sort()) ===
+                              JSON.stringify([...correctAnswer].sort());
+                            if (!questionResults[q.id]) {
+                              questionResults[q.id] = [];
+                            }
+                            questionResults[q.id].push(isCorrect);
+                          });
+                        });
+                        // Count unique questions that have at least one correct answer
+                        const uniqueIds = Object.keys(questionResults);
+                        const correctUnique = uniqueIds.filter((id) =>
+                          questionResults[id].some((r) => r === true),
+                        ).length;
+                        return `${correctUnique}/${uniqueIds.length}`;
+                      })()}{" "}
+                      Unique
                     </span>
                   </>
                 )}
