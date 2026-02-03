@@ -152,6 +152,17 @@ const History = () => {
                       )}{" "}
                       Correct
                     </span>
+                    <span className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white/5 border border-white/5">
+                      <i className="fa-solid fa-question-circle text-purple-400"></i>
+                      {
+                        new Set(
+                          history.flatMap((h) =>
+                            (h.questions || []).map((q) => q.id)
+                          )
+                        ).size
+                      }{" "}
+                      UQ
+                    </span>
                   </>
                 )}
               </div>
