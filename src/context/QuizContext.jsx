@@ -71,7 +71,7 @@ const quizReducer = (state, action) => {
         ...state,
         session: {
           ...state.session,
-          timeLeft: state.session.timeLeft - 1,
+          timeLeft: state.session.timeLeft - 60,
         },
       };
     case "FINISH_EXAM":

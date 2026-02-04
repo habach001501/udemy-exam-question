@@ -45,6 +45,7 @@ const QuestionContent = memo(function QuestionContent({
   isNewQuestion,
   isAlwaysIncorrect,
 }) {
+  console.log("currentQ", currentQ.prompt.question);
   return (
     <div className="flex flex-col h-full">
       {/* Chat Messages Area */}
@@ -173,21 +174,20 @@ const QuestionSidebar = memo(function QuestionSidebar({
   onNavigate,
   isCompact = false,
 }) {
-  // Generate fake chat titles
-  const getChatTitle = (idx) => {
-    const titles = [
-      "How do I optimize...",
-      "Explain the concept of...",
-      "What is the difference...",
-      "Help me understand...",
-      "Review this code...",
-      "Debug this issue...",
-      "Best practices for...",
-      "Implementation of...",
-      "Architecture question...",
-      "Performance issue...",
-    ];
-    return titles[idx % titles.length];
+  // Extract question preview from HTML content
+  const getQuestionPreview = (question) => {
+    if (!question?.prompt?.question) return "Question...";
+    // Strip HTML tags and get plain text
+    const plainText = question.prompt.question
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&")
+      .replace(/\s+/g, " ")
+      .trim();
+    // Return first 50 characters
+    return plainText.length > 50 ? plainText.substring(0, 50) + "..." : plainText;
   };
 
   if (isCompact) {
@@ -227,7 +227,7 @@ const QuestionSidebar = memo(function QuestionSidebar({
           onClick={() => onNavigate(idx)}
         >
           <i className="fa-regular fa-message text-xs flex-shrink-0"></i>
-          <span className="truncate">{getChatTitle(idx)}</span>
+          <span className="truncate">{getQuestionPreview(q)}</span>
           {answers[q.id]?.length > 0 && (
             <i className="fa-solid fa-check text-[10px] text-[#10a37f] ml-auto flex-shrink-0"></i>
           )}

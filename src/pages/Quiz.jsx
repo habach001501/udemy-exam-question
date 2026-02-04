@@ -20,7 +20,7 @@ const Quiz = () => {
         if (session.mode === 'exam' && !session.isFinished && !session.isPaused && session.timeLeft > 0) {
             const interval = setInterval(() => {
                 dispatch({ type: 'TICK_TIMER' });
-            }, 1000);
+            }, 60000);
             return () => clearInterval(interval);
         } else if (session.mode === 'exam' && session.timeLeft <= 0 && !session.isFinished) {
             dispatch({ type: 'FINISH_EXAM' });
