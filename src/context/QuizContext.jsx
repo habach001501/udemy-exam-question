@@ -81,6 +81,7 @@ const quizReducer = (state, action) => {
           ...state.session,
           isFinished: true,
           endTime: new Date(),
+          questionBadges: action.payload?.questionBadges || {},
         },
       };
     case "RESET_SESSION":

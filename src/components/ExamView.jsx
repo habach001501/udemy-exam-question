@@ -107,10 +107,9 @@ const QuestionContent = memo(function QuestionContent({
                   <div
                     key={idx}
                     className={`flex text-[17px] border border-[#ececec] gap-3 p-2 rounded-lg cursor-pointer transition-all duration-200
-                      ${
-                        isSelected
-                          ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
-                          : "text-[#0d0d0d] hover:border hover:border-gray-900"
+                      ${isSelected
+                        ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
+                        : "text-[#0d0d0d] hover:border hover:border-gray-900"
                       }`}
                     onClick={() =>
                       handleAnswer(letter, currentQ.correct_response.length > 1)
@@ -219,10 +218,9 @@ const QuestionSidebar = memo(function QuestionSidebar({
         <div
           key={idx}
           className={`w-full py-2.5 px-3 rounded-md cursor-pointer transition-all text-sm truncate flex items-center gap-2
-            ${
-              idx === currentIndex
-                ? "bg-gray-700 text-white"
-                : "text-gray-400 hover:bg-gray-800"
+            ${idx === currentIndex
+              ? "bg-gray-700 text-white"
+              : "text-gray-400 hover:bg-gray-800"
             }
             ${answers[q.id]?.length && idx !== currentIndex ? "text-[#10a37f]" : ""}
           `}
@@ -298,10 +296,22 @@ const ExamView = () => {
 
   const handleSubmit = React.useCallback(() => {
     if (confirm("Are you sure you want to submit the exam?")) {
-      dispatch({ type: "FINISH_EXAM" });
+      // Build badge data for each question to save in history
+      const questionBadges = {};
+      session.questions.forEach((q) => {
+        const isNew = seenQuestionIds.size > 0 && !seenQuestionIds.has(q.id);
+        const isIncorrect = alwaysIncorrectIds.has(q.id);
+        if (isNew || isIncorrect) {
+          questionBadges[q.id] = {
+            isNew,
+            isAlwaysIncorrect: isIncorrect,
+          };
+        }
+      });
+      dispatch({ type: "FINISH_EXAM", payload: { questionBadges } });
       navigate("/result");
     }
-  }, [dispatch, navigate]);
+  }, [dispatch, navigate, session.questions, seenQuestionIds, alwaysIncorrectIds]);
 
   const handleNavigate = React.useCallback(
     (idx) => dispatch({ type: "NAVIGATE_QUESTION", payload: idx }),

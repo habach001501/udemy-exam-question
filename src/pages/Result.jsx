@@ -56,15 +56,21 @@ const Result = () => {
 
         // Slim down questions to only include fields needed for review
         // This significantly reduces history.json file size
-        const slimQuestions = session.questions.map((q) => ({
-          id: q.id,
-          correct_response: q.correct_response,
-          prompt: {
-            question: q.prompt.question,
-            answers: q.prompt.answers,
-            explanation: q.prompt.explanation,
-          },
-        }));
+        const slimQuestions = session.questions.map((q) => {
+          const badges = session.questionBadges?.[q.id] || {};
+          return {
+            id: q.id,
+            correct_response: q.correct_response,
+            source: q.source,
+            isNew: badges.isNew || false,
+            isAlwaysIncorrect: badges.isAlwaysIncorrect || false,
+            prompt: {
+              question: q.prompt.question,
+              answers: q.prompt.answers,
+              explanation: q.prompt.explanation,
+            },
+          };
+        });
 
         const resultData = {
           id: Date.now().toString(),
