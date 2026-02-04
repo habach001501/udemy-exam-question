@@ -197,8 +197,8 @@ const QuestionSidebar = memo(function QuestionSidebar({
           <div
             key={idx}
             className={`w-full h-6 flex-shrink-0 text-[10px] mt-0.5 flex items-center justify-center rounded cursor-pointer transition-all
-              ${idx === currentIndex ? "bg-yellow-700 text-white" : "text-gray-500 hover:bg-gray-800 hover:text-gray-400"}
-              ${answers[q.id]?.length ? "text-[#10a37f] bg-blue-200" : ""}
+              ${idx === currentIndex ? "bg-gray-400 text-white" : "text-gray-500 hover:bg-gray-200 hover:text-gray-600"}
+              ${answers[q.id]?.length ? "text-[#10a37f] bg-green-100" : ""}
             `}
             onClick={() => onNavigate(idx)}
           >
@@ -219,8 +219,8 @@ const QuestionSidebar = memo(function QuestionSidebar({
           key={idx}
           className={`w-full py-2.5 px-3 rounded-md cursor-pointer transition-all text-sm truncate flex items-center gap-2
             ${idx === currentIndex
-              ? "bg-gray-700 text-white"
-              : "text-gray-400 hover:bg-gray-800"
+              ? "bg-gray-300 text-gray-800"
+              : "text-gray-500 hover:bg-gray-200"
             }
             ${answers[q.id]?.length && idx !== currentIndex ? "text-[#10a37f]" : ""}
           `}
@@ -324,11 +324,11 @@ const ExamView = () => {
     >
       {/* Sidebar */}
       <aside
-        className={`bg-[#202123] p-3 rounded-none flex flex-col h-full max-h-[calc(100vh-100px)] overflow-y-auto border-r border-white/10 transition-all duration-300 ${sidebarCollapsed ? "items-center" : ""} [&::-webkit-scrollbar]:w-[4px] [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full`}
+        className={`bg-[#f5f5f5] p-3 rounded-lg flex flex-col h-full max-h-[80vh] overflow-y-auto border-r border-gray-200 transition-all duration-300 ${sidebarCollapsed ? "items-center" : ""} [&::-webkit-scrollbar]:w-[4px] [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded-full`}
       >
         {/* New Chat Button - ChatGPT Style */}
         <button
-          className={`w-full mb-3 rounded-md transition-all border border-white/20 text-gray-300 hover:bg-gray-700 flex items-center gap-2 cursor-pointer ${sidebarCollapsed ? "p-2 justify-center" : "py-3 px-3"}`}
+          className={`w-full mb-3 rounded-md transition-all border border-gray-300 text-gray-600 hover:bg-gray-200 flex items-center gap-2 cursor-pointer ${sidebarCollapsed ? "p-2 justify-center" : "py-3 px-3"}`}
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
         >
           <i className="fa-solid fa-plus text-sm"></i>
@@ -340,7 +340,7 @@ const ExamView = () => {
         {!sidebarCollapsed && (
           <>
             <button
-              className={`w-full mb-2 py-2.5 rounded-md text-sm transition-all cursor-pointer flex items-center justify-center gap-2 ${session.isPaused ? "bg-[#10a37f] text-white hover:bg-[#0d8a6c]" : "bg-gray-700 text-gray-300 hover:bg-gray-600"}`}
+              className={`w-full mb-2 py-2.5 rounded-md text-sm transition-all cursor-pointer flex items-center justify-center gap-2 ${session.isPaused ? "bg-[#10a37f] text-white hover:bg-[#0d8a6c]" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
               onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
             >
               <i
@@ -400,7 +400,7 @@ const ExamView = () => {
       </aside>
 
       {/* Question Container - ChatGPT Style */}
-      <section className="bg-white p-6 md:p-10 rounded-lg h-full max-h-[calc(100vh-100px)] overflow-y-auto flex flex-col relative">
+      <section className="bg-white p-6 md:p-10 rounded-lg h-full max-h-[90vh] overflow-y-auto flex flex-col relative">
         {session.isPaused ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#343541]/95 backdrop-blur-sm z-20 rounded-lg">
             <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center mb-6">

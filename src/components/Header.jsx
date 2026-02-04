@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const Header = () => {
     return (
-        <header className="bg-bg-dark/90 backdrop-blur-md border-b border-white/10 sticky top-0 z-50 px-8 py-4 flex justify-between items-center">
+        <header className="bg-[#f5f5f5] backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 px-8 py-4 flex justify-between items-center">
             <Link to="/" className="text-2xl font-bold bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent cursor-pointer no-underline">
                 <i className="fa-solid fa-cloud"></i> Chat GPT
             </Link>

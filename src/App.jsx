@@ -11,7 +11,7 @@ function App() {
   return (
     <>
       <Header />
-      <main>
+      <main className="bg-white max-h-[93vh]">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dashboard/:courseId" element={<Dashboard />} />

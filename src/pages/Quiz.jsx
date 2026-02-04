@@ -31,7 +31,7 @@ const Quiz = () => {
     if (!session.active) return null;
 
     return (
-        <div className="w-full max-w-[95vw] mx-auto px-4 h-[calc(100vh-80px)] overflow-hidden">
+        <div className="w-full max-w-[85vw] mx-auto px-4 h-[calc(100vh-80px)] overflow-hidden">
             {session.mode === 'exam' ? <ExamView /> : <ReviewView />}
         </div>
     );
