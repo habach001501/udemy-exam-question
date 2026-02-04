@@ -276,7 +276,7 @@ const ExamView = () => {
     seenQuestionIds.size > 0 && !seenQuestionIds.has(currentQ.id);
   const isAlwaysIncorrect = alwaysIncorrectIds.has(currentQ.id);
 
-  const handleAnswer = (letter, isMulti) => {
+  const handleAnswer = React.useCallback((letter, isMulti) => {
     const currentAnswers = session.answers[currentQ.id] || [];
     let newAnswers = [...currentAnswers];
     if (isMulti) {
@@ -292,7 +292,7 @@ const ExamView = () => {
       type: "ANSWER_QUESTION",
       payload: { questionId: currentQ.id, selected: newAnswers },
     });
-  };
+  }, [session.answers, currentQ.id, dispatch]);
 
   const handleSubmit = React.useCallback(() => {
     if (confirm("Are you sure you want to submit the exam?")) {
