@@ -55,16 +55,23 @@ const QuestionContent = memo(function QuestionContent({
             U
           </div>
           <div className="flex-1">
-            {isNewQuestion && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 mb-2 text-[10px] font-semibold rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black">
-                <i className="fa-solid fa-sparkles"></i> NEW
-              </span>
-            )}
-            {isAlwaysIncorrect && !isNewQuestion && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 mb-2 text-[10px] font-semibold rounded-full bg-gradient-to-r from-red-500 to-rose-600 text-white">
-                <i className="fa-solid fa-exclamation-triangle"></i> ATTENTION
-              </span>
-            )}
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              {isNewQuestion && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black">
+                  <i className="fa-solid fa-sparkles"></i> NEW
+                </span>
+              )}
+              {isAlwaysIncorrect && !isNewQuestion && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-gradient-to-r from-red-500 to-rose-600 text-white">
+                  <i className="fa-solid fa-exclamation-triangle"></i> ATTENTION
+                </span>
+              )}
+              {currentQ.source && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded-full bg-gray-200 text-gray-700 border border-gray-300">
+                  <i className="fa-solid fa-folder"></i> {currentQ.source}
+                </span>
+              )}
+            </div>
             <div
               className="text-[18px] leading-relaxed text-[#0d0d0d] [&>p]:mb-3 [&>img]:max-w-full [&>img]:rounded-lg [&>img]:my-4 [&>img]:border [&>img]:border-gray-700"
               dangerouslySetInnerHTML={{ __html: currentQ.prompt.question }}
