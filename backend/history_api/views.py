@@ -102,3 +102,65 @@ class HistoryDetailView(APIView):
         
         write_history(history)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SeenQuestionsView(APIView):
+    """
+    GET: Get unique question IDs that have been seen in history
+    """
+    
+    def get(self, request):
+        history = read_history()
+        seen_ids = set()
+        
+        for record in history:
+            questions = record.get('questions', [])
+            for question in questions:
+                q_id = question.get('id')
+                if q_id is not None:
+                    seen_ids.add(q_id)
+        
+        return Response({'seen_question_ids': list(seen_ids)})
+
+
+class AlwaysIncorrectQuestionsView(APIView):
+    """
+    GET: Get question IDs that have been attempted but never answered correctly.
+    These are questions the user needs to pay attention to.
+    """
+    
+    def get(self, request):
+        history = read_history()
+        
+        # Track for each question: has it ever been answered correctly?
+        question_correct_status = {}  # {question_id: True if ever correct, False otherwise}
+        
+        for record in history:
+            questions = record.get('questions', [])
+            answers = record.get('answers', {})
+            
+            for question in questions:
+                q_id = question.get('id')
+                if q_id is None:
+                    continue
+                    
+                q_id_str = str(q_id)
+                correct_response = question.get('correct_response', [])
+                user_answer = answers.get(q_id_str, [])
+                
+                # Check if user answered correctly (sorted comparison)
+                is_correct = sorted(user_answer) == sorted(correct_response)
+                
+                # If ever answered correctly, mark as True
+                if q_id not in question_correct_status:
+                    question_correct_status[q_id] = is_correct
+                elif is_correct:
+                    question_correct_status[q_id] = True
+        
+        # Get questions that have been attempted but NEVER answered correctly
+        always_incorrect_ids = [
+            q_id for q_id, ever_correct in question_correct_status.items()
+            if not ever_correct
+        ]
+        
+        return Response({'always_incorrect_ids': always_incorrect_ids})
