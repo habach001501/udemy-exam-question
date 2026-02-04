@@ -99,7 +99,7 @@ const QuestionContent = memo(function QuestionContent({
                 return (
                   <div
                     key={idx}
-                    className={`flex text-[15px] border border-[#ececec] gap-3 p-4 rounded-lg cursor-pointer transition-all duration-200
+                    className={`flex text-[17px] border border-[#ececec] gap-3 p-2 rounded-lg cursor-pointer transition-all duration-200
                       ${
                         isSelected
                           ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
@@ -119,11 +119,6 @@ const QuestionContent = memo(function QuestionContent({
                       className={`flex-1 [&>p]:m-0 leading-relaxed ${isSelected ? "font-medium" : ""}`}
                       dangerouslySetInnerHTML={{ __html: ansHtml }}
                     ></div>
-                    {isSelected && (
-                      <div className="flex-shrink-0">
-                        <i className="fa-solid fa-check text-[#10a37f]"></i>
-                      </div>
-                    )}
                   </div>
                 );
               })}
