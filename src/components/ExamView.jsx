@@ -99,11 +99,11 @@ const QuestionContent = memo(function QuestionContent({
                 return (
                   <div
                     key={idx}
-                    className={`flex text-[15px] gap-3 p-4 rounded-lg cursor-pointer transition-all duration-200
+                    className={`flex text-[15px] border border-[#ececec] gap-3 p-4 rounded-lg cursor-pointer transition-all duration-200
                       ${
                         isSelected
-                          ? "bg-[#10a37f]/80 border-[#10a37f] text-white"
-                          : "text-[#0d0d0d] hover:bg-gray-600 hover:text-white hover:border-gray-500"
+                          ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
+                          : "text-[#0d0d0d] hover:border hover:border-gray-900"
                       }`}
                     onClick={() =>
                       handleAnswer(letter, currentQ.correct_response.length > 1)
