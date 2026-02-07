@@ -45,6 +45,7 @@ const QuestionContent = memo(function QuestionContent({
   isNewQuestion,
   isAlwaysIncorrect,
 }) {
+  const [isAvatarHovered, setIsAvatarHovered] = useState(false);
   console.log("currentQ", currentQ.prompt.question);
   return (
     <div className="flex flex-col h-full">
@@ -52,7 +53,11 @@ const QuestionContent = memo(function QuestionContent({
       <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 pb-4 [&::-webkit-scrollbar]:w-[4px] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
         {/* User Message - The Question */}
         <div className="flex gap-4 items-start">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold">
+          <div
+            className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold cursor-pointer"
+            onMouseEnter={() => setIsAvatarHovered(true)}
+            onMouseLeave={() => setIsAvatarHovered(false)}
+          >
             U
           </div>
           <div className="flex-1">
@@ -68,7 +73,9 @@ const QuestionContent = memo(function QuestionContent({
                 </span>
               )}
               {currentQ.source && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded-full bg-gray-200 text-gray-700 border border-gray-300">
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded-full bg-gray-200 text-gray-700 border border-gray-300 transition-opacity duration-200 ${isAvatarHovered ? "opacity-100" : "opacity-0"}`}
+                >
                   <i className="fa-solid fa-folder"></i> {currentQ.source}
                 </span>
               )}
@@ -108,9 +115,10 @@ const QuestionContent = memo(function QuestionContent({
                   <div
                     key={idx}
                     className={`flex text-[16dbpx] border border-[#ececec] gap-3 p-2 rounded-lg cursor-pointer transition-all duration-200
-                      ${isSelected
-                        ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
-                        : "text-[#0d0d0d] hover:border hover:border-gray-900"
+                      ${
+                        isSelected
+                          ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
+                          : "text-[#0d0d0d] hover:border hover:border-gray-900"
                       }`}
                     onClick={() =>
                       handleAnswer(letter, currentQ.correct_response.length > 1)
@@ -187,7 +195,9 @@ const QuestionSidebar = memo(function QuestionSidebar({
       .replace(/\s+/g, " ")
       .trim();
     // Return first 50 characters
-    return plainText.length > 50 ? plainText.substring(0, 50) + "..." : plainText;
+    return plainText.length > 50
+      ? plainText.substring(0, 50) + "..."
+      : plainText;
   };
 
   if (isCompact) {
@@ -218,9 +228,10 @@ const QuestionSidebar = memo(function QuestionSidebar({
         <div
           key={idx}
           className={`w-full py-2.5 px-3 rounded-md cursor-pointer transition-all text-sm truncate flex items-center gap-2
-            ${idx === currentIndex
-              ? "bg-gray-300 text-gray-800"
-              : "text-gray-500 hover:bg-gray-200"
+            ${
+              idx === currentIndex
+                ? "bg-gray-300 text-gray-800"
+                : "text-gray-500 hover:bg-gray-200"
             }
             ${answers[q.id]?.length && idx !== currentIndex ? "text-[#10a37f]" : ""}
           `}
@@ -276,23 +287,26 @@ const ExamView = () => {
     seenQuestionIds.size > 0 && !seenQuestionIds.has(currentQ.id);
   const isAlwaysIncorrect = alwaysIncorrectIds.has(currentQ.id);
 
-  const handleAnswer = React.useCallback((letter, isMulti) => {
-    const currentAnswers = session.answers[currentQ.id] || [];
-    let newAnswers = [...currentAnswers];
-    if (isMulti) {
-      if (newAnswers.includes(letter)) {
-        newAnswers = newAnswers.filter((l) => l !== letter);
+  const handleAnswer = React.useCallback(
+    (letter, isMulti) => {
+      const currentAnswers = session.answers[currentQ.id] || [];
+      let newAnswers = [...currentAnswers];
+      if (isMulti) {
+        if (newAnswers.includes(letter)) {
+          newAnswers = newAnswers.filter((l) => l !== letter);
+        } else {
+          newAnswers.push(letter);
+        }
       } else {
-        newAnswers.push(letter);
+        newAnswers = [letter];
       }
-    } else {
-      newAnswers = [letter];
-    }
-    dispatch({
-      type: "ANSWER_QUESTION",
-      payload: { questionId: currentQ.id, selected: newAnswers },
-    });
-  }, [session.answers, currentQ.id, dispatch]);
+      dispatch({
+        type: "ANSWER_QUESTION",
+        payload: { questionId: currentQ.id, selected: newAnswers },
+      });
+    },
+    [session.answers, currentQ.id, dispatch],
+  );
 
   const handleSubmit = React.useCallback(() => {
     if (confirm("Are you sure you want to submit the exam?")) {
@@ -311,7 +325,13 @@ const ExamView = () => {
       dispatch({ type: "FINISH_EXAM", payload: { questionBadges } });
       navigate("/result");
     }
-  }, [dispatch, navigate, session.questions, seenQuestionIds, alwaysIncorrectIds]);
+  }, [
+    dispatch,
+    navigate,
+    session.questions,
+    seenQuestionIds,
+    alwaysIncorrectIds,
+  ]);
 
   const handleNavigate = React.useCallback(
     (idx) => dispatch({ type: "NAVIGATE_QUESTION", payload: idx }),
