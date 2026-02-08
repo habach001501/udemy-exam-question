@@ -114,7 +114,7 @@ const QuestionContent = memo(function QuestionContent({
                 return (
                   <div
                     key={idx}
-                    className={`flex text-[16dbpx] border border-[#ececec] gap-3 p-2 rounded-lg cursor-pointer transition-all duration-200
+                    className={`flex text-[16px] border border-[#ececec] gap-3 p-2 rounded-lg cursor-pointer transition-all duration-200
                       ${
                         isSelected
                           ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
