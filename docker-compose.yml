@@ -4,7 +4,7 @@ services:
     container_name: exam-backend
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8888:8888"
     volumes:
       - ./backend/data:/app/data
     environment:
@@ -25,9 +25,9 @@ services:
       - .:/app
       - /app/node_modules
     ports:
-      - "3000:5173"
+      - "3333:5173"
     environment:
-      - VITE_API_URL=http://localhost:8000/api
+      - VITE_API_URL=http://localhost:8888/api
     depends_on:
       - backend
     networks:

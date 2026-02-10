@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import ReviewView from "../components/ReviewView";
 import { getHistory, deleteHistory } from "../services/api";
 
-const ITEMS_PER_PAGE = 7;
+const ITEMS_PER_PAGE = 10;
 
 const History = () => {
   const [history, setHistory] = useState([]);
