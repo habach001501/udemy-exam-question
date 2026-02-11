@@ -9,6 +9,8 @@ const Timer = memo(function Timer({ isCompact = false }) {
   const { state } = useQuiz();
   const timeLeft = state.session.timeLeft;
 
+  if (!timeLeft || timeLeft <= 0) return null;
+
   const formatTime = (s) => {
     const m = Math.floor(s / 60);
     const sec = s % 60;
@@ -355,19 +357,21 @@ const ExamView = () => {
           {!sidebarCollapsed && <span className="text-sm">New chat</span>}
         </button>
 
-        <Timer isCompact={sidebarCollapsed} />
+        {state.session.timeLeft > 0 && <Timer isCompact={sidebarCollapsed} />}
 
         {!sidebarCollapsed && (
           <>
-            <button
-              className={`w-full mb-2 py-2.5 rounded-md text-sm transition-all cursor-pointer flex items-center justify-center gap-2 ${session.isPaused ? "bg-[#10a37f] text-white hover:bg-[#0d8a6c]" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
-              onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
-            >
-              <i
-                className={`fa-solid ${session.isPaused ? "fa-play" : "fa-pause"} text-xs`}
-              ></i>
-              {session.isPaused ? "Resume" : "Pause"}
-            </button>
+            {state.session.timeLeft > 0 && (
+              <button
+                className={`w-full mb-2 py-2.5 rounded-md text-sm transition-all cursor-pointer flex items-center justify-center gap-2 ${session.isPaused ? "bg-[#10a37f] text-white hover:bg-[#0d8a6c]" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
+                onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
+              >
+                <i
+                  className={`fa-solid ${session.isPaused ? "fa-play" : "fa-pause"} text-xs`}
+                ></i>
+                {session.isPaused ? "Resume" : "Pause"}
+              </button>
+            )}
 
             <button
               className="bg-[#10a37f] text-white w-full mb-4 py-2.5 rounded-md text-sm hover:bg-[#0d8a6c] transition-all cursor-pointer flex items-center justify-center gap-2"
@@ -389,15 +393,17 @@ const ExamView = () => {
         {sidebarCollapsed && (
           <>
             <div className="flex flex-col gap-1 mb-1 w-full">
-              <button
-                className={`w-full h-7 rounded text-xs transition-all flex items-center justify-center cursor-pointer ${session.isPaused ? "bg-[#10a37f] text-white" : "bg-gray-700 text-gray-400 hover:bg-gray-600"}`}
-                onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
-                title={session.isPaused ? "Resume" : "Pause"}
-              >
-                <i
-                  className={`fa-solid ${session.isPaused ? "fa-play" : "fa-pause"} text-[10px]`}
-                ></i>
-              </button>
+              {state.session.timeLeft > 0 && (
+                <button
+                  className={`w-full h-7 rounded text-xs transition-all flex items-center justify-center cursor-pointer ${session.isPaused ? "bg-[#10a37f] text-white" : "bg-gray-700 text-gray-400 hover:bg-gray-600"}`}
+                  onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
+                  title={session.isPaused ? "Resume" : "Pause"}
+                >
+                  <i
+                    className={`fa-solid ${session.isPaused ? "fa-play" : "fa-pause"} text-[10px]`}
+                  ></i>
+                </button>
+              )}
 
               <button
                 className="bg-[#10a37f] text-white w-full h-7 rounded text-xs hover:bg-[#0d8a6c] transition-all flex items-center justify-center cursor-pointer"

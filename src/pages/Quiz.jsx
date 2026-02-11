@@ -1,40 +1,57 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuiz } from '../context/QuizContext';
-import ExamView from '../components/ExamView';
-import ReviewView from '../components/ReviewView';
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuiz } from "../context/QuizContext";
+import ExamView from "../components/ExamView";
+import ReviewView from "../components/ReviewView";
 
 const Quiz = () => {
-    const { state, dispatch } = useQuiz();
-    const navigate = useNavigate();
-    const { session } = state;
+  const { state, dispatch } = useQuiz();
+  const navigate = useNavigate();
+  const { session } = state;
 
-    useEffect(() => {
-        if (!session.active) {
-            navigate('/');
-        }
-    }, [session.active, navigate]);
+  useEffect(() => {
+    if (!session.active) {
+      navigate("/");
+    }
+  }, [session.active, navigate]);
 
-    // Timer Logic
-    useEffect(() => {
-        if (session.mode === 'exam' && !session.isFinished && !session.isPaused && session.timeLeft > 0) {
-            const interval = setInterval(() => {
-                dispatch({ type: 'TICK_TIMER' });
-            }, 60000);
-            return () => clearInterval(interval);
-        } else if (session.mode === 'exam' && session.timeLeft <= 0 && !session.isFinished) {
-            dispatch({ type: 'FINISH_EXAM' });
-            navigate('/result');
-        }
-    }, [session.mode, session.timeLeft, session.isFinished, session.isPaused, dispatch, navigate]);
+  // Timer Logic — only applies when session was started with a timer (timeLeft > 0)
+  useEffect(() => {
+    if (
+      session.mode === "exam" &&
+      !session.isFinished &&
+      !session.isPaused &&
+      session.timeLeft > 0
+    ) {
+      const interval = setInterval(() => {
+        dispatch({ type: "TICK_TIMER" });
+      }, 60000);
+      return () => clearInterval(interval);
+    } else if (
+      session.mode === "exam" &&
+      session.timeLeft < 0 &&
+      !session.isFinished
+    ) {
+      // Auto-submit only when timer has counted down past 0 (timeLeft goes negative from TICK_TIMER)
+      dispatch({ type: "FINISH_EXAM" });
+      navigate("/result");
+    }
+  }, [
+    session.mode,
+    session.timeLeft,
+    session.isFinished,
+    session.isPaused,
+    dispatch,
+    navigate,
+  ]);
 
-    if (!session.active) return null;
+  if (!session.active) return null;
 
-    return (
-        <div className="w-full max-w-[85vw] mx-auto px-4 h-[calc(100vh-80px)] overflow-hidden">
-            {session.mode === 'exam' ? <ExamView /> : <ReviewView />}
-        </div>
-    );
+  return (
+    <div className="w-full max-w-[85vw] mx-auto px-4 h-[calc(100vh-80px)] overflow-hidden">
+      {session.mode === "exam" ? <ExamView /> : <ReviewView />}
+    </div>
+  );
 };
 
 export default Quiz;

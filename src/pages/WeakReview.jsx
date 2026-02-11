@@ -75,7 +75,6 @@ const WeakReview = () => {
       payload: {
         mode: "exam",
         questions: weakQuestions,
-        timeLeft: weakQuestions.length * 2 * 60, // 2 minutes per question
       },
     });
     navigate("/quiz/weak-review");
