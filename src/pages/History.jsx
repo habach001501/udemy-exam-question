@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ReviewView from "../components/ReviewView";
 import { getHistory, deleteHistory } from "../services/api";
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 8;
 
 const History = () => {
   const navigate = useNavigate();
