@@ -56,7 +56,7 @@ const WeakReview = () => {
     const questions = [];
     const answers = {};
     Object.entries(questionStats).forEach(([id, stat]) => {
-      if (stat.correct <= stat.incorrect) {
+      if (stat.correct <= stat.incorrect && stat.question.source) {
         questions.push(stat.question);
         answers[id] = stat.lastAnswer;
       }
