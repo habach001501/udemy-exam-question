@@ -78,7 +78,7 @@ const Dashboard = () => {
         timeLeft: 0,
       },
     });
-    navigate(`/quiz/${courseId}`);
+    navigate(`/quiz/${courseId}?set=${setIndex}`);
   };
 
   if (loading)

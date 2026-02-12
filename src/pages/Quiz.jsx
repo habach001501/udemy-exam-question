@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuiz } from "../context/QuizContext";
 import ExamView from "../components/ExamView";
 import ReviewView from "../components/ReviewView";
@@ -7,7 +7,12 @@ import ReviewView from "../components/ReviewView";
 const Quiz = () => {
   const { state, dispatch } = useQuiz();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { session } = state;
+
+  // Read set index from URL param
+  const setParam = searchParams.get("set");
+  const setIndex = setParam !== null ? parseInt(setParam, 10) : undefined;
 
   useEffect(() => {
     if (!session.active) {
@@ -49,7 +54,11 @@ const Quiz = () => {
 
   return (
     <div className="w-full max-w-[85vw] mx-auto px-4 h-[calc(100vh-80px)] overflow-hidden">
-      {session.mode === "exam" ? <ExamView /> : <ReviewView />}
+      {session.mode === "exam" ? (
+        <ExamView />
+      ) : (
+        <ReviewView setIndex={setIndex} />
+      )}
     </div>
   );
 };

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuiz } from "../context/QuizContext";
 import ReviewCard from "./ReviewCard";
 
@@ -7,17 +8,53 @@ const ReviewView = ({
   answers,
   readOnly = false,
   isHistoryShow = false,
+  setIndex,
 }) => {
-  const { state } = useQuiz();
+  const { state, dispatch } = useQuiz();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const sessionQuestions = questions || state.session.questions;
   const initialAnswers = answers || state.session.answers || {};
 
-  // Track current answers for highlighting, initializing from props/session
   // Track current answers for highlighting, initializing from props/session
   const [currentAnswers, setCurrentAnswers] = useState(initialAnswers);
   const [interactiveMode, setInteractiveMode] = useState(true);
   const [revealedQuestions, setRevealedQuestions] = useState({});
   const [filter, setFilter] = useState("all"); // all, correct, incorrect, unanswered
+
+  // Determine if set switcher should be shown
+  const availableSets = state.availableData || [];
+  const showSetSwitcher = setIndex !== undefined && availableSets.length > 0;
+
+  const handleSwitchSet = useCallback(
+    (newIndex) => {
+      if (newIndex === setIndex || !availableSets[newIndex]) return;
+
+      const newQuestions = availableSets[newIndex].questions;
+      dispatch({
+        type: "START_SESSION",
+        payload: {
+          mode: "review",
+          questions: newQuestions,
+          timeLeft: 0,
+        },
+      });
+
+      // Update URL param
+      const courseId = window.location.pathname
+        .split("/quiz/")[1]
+        ?.split("?")[0];
+      if (courseId) {
+        navigate(`/quiz/${courseId}?set=${newIndex}`, { replace: true });
+      }
+
+      // Reset local state
+      setCurrentAnswers({});
+      setRevealedQuestions({});
+      setFilter("all");
+    },
+    [setIndex, availableSets, dispatch, navigate],
+  );
 
   const getQuestionStatus = (q) => {
     const userAns = (currentAnswers[q.id] || []).sort().join("");
@@ -84,7 +121,6 @@ const ReviewView = ({
       className={`flex flex-col h-full gap-0 overflow-hidden ${interactiveMode ? "interactive-mode" : ""}`}
     >
       {/* Top Bar Navigation */}
-      {/* Top Bar Navigation */}
       <aside className="relative w-full h-auto flex flex-col shrink-0 z-10 py-2 gap-4 px-6 bg-gradient-to-b from-bg-dark to-transparent">
         <div className="flex items-center justify-between gap-4">
           {/* Left Block: Mode Switcher (only if not readonly) */}
@@ -102,6 +138,33 @@ const ReviewView = ({
               >
                 <i className="fa-solid fa-pen-to-square text-xs"></i>Practice
               </button>
+            </div>
+          )}
+
+          {/* Set Switcher Dropdown — only shown in review-by-set mode */}
+          {showSetSwitcher && (
+            <div className="flex bg-bg-card border border-white/10 rounded-xl p-1.5 shadow-xl shrink-0 backdrop-blur-md items-center gap-2 px-3">
+              <i className="fa-solid fa-layer-group text-xs text-text-muted"></i>
+              <select
+                value={setIndex}
+                onChange={(e) => handleSwitchSet(parseInt(e.target.value, 10))}
+                className="bg-transparent text-white text-sm font-bold border-none outline-none cursor-pointer appearance-none pr-6"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 0 center",
+                }}
+              >
+                {availableSets.map((set, idx) => (
+                  <option
+                    key={idx}
+                    value={idx}
+                    className="bg-[#1e1e2e] text-white"
+                  >
+                    {set.name} ({set.count}q)
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 
