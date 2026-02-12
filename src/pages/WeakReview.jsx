@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuiz } from "../context/QuizContext";
 import ReviewView from "../components/ReviewView";
 import { getHistory } from "../services/api";
+import { courses } from "../config";
 
 const WeakReview = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const courseFilter = searchParams.get("course");
   const { dispatch } = useQuiz();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,12 +17,12 @@ const WeakReview = () => {
   useEffect(() => {
     const loadHistory = async () => {
       setLoading(true);
-      const h = await getHistory();
+      const h = await getHistory(courseFilter || courses[0]?.id);
       setHistory(h);
       setLoading(false);
     };
     loadHistory();
-  }, []);
+  }, [courseFilter]);
 
   // Compute question results across all attempts
   const questionStats = useMemo(() => {

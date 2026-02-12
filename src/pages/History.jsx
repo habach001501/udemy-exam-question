@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import ReviewView from "../components/ReviewView";
 import { getHistory, deleteHistory } from "../services/api";
+import { courses } from "../config";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -11,16 +12,19 @@ const History = () => {
   const [selectedAttempt, setSelectedAttempt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCourse, setSelectedCourse] = useState(courses[0]?.id || "ALL");
 
+  // Load history for the selected course
   useEffect(() => {
     const loadHistory = async () => {
       setLoading(true);
-      const h = await getHistory();
+      setCurrentPage(1);
+      const h = await getHistory(selectedCourse);
       setHistory(h);
       setLoading(false);
     };
     loadHistory();
-  }, []);
+  }, [selectedCourse]);
 
   const handleDelete = async (id) => {
     if (
@@ -28,7 +32,7 @@ const History = () => {
         "Are you sure you want to delete this history record? This action cannot be undone.",
       )
     ) {
-      const success = await deleteHistory(id);
+      const success = await deleteHistory(id, selectedCourse);
       if (success) {
         setHistory((prev) => prev.filter((h) => h.id !== id));
       } else {
@@ -82,7 +86,7 @@ const History = () => {
 
   // Navigate to weak review page
   const handleOpenWeakReview = () => {
-    navigate("/weak-review");
+    navigate(`/weak-review?course=${selectedCourse}`);
   };
 
   // Pagination calculations
@@ -183,6 +187,25 @@ const History = () => {
               <h1 className="text-3xl font-black text-gray-800 tracking-tight mb-2">
                 My History
               </h1>
+
+              {/* Course Tab Bar */}
+              <div className="flex items-center gap-2 mb-3">
+                {courses.map((c) => (
+                  <button
+                    key={c.id}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer border ${
+                      selectedCourse === c.id
+                        ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
+                    }`}
+                    onClick={() => setSelectedCourse(c.id)}
+                  >
+                    <i className={`fa-solid ${c.icon} mr-1.5`}></i>
+                    {c.id}
+                  </button>
+                ))}
+              </div>
+
               <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
                 <span className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white border border-gray-200">
                   <i className="fa-solid fa-list-check text-primary"></i>

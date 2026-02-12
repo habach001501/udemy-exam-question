@@ -10,7 +10,11 @@ const Dashboard = () => {
   const { state, dispatch } = useQuiz();
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("dashboard");
-  const [examConfig, setExamConfig] = useState({ count: 75, time: 180 });
+  const [examConfig, setExamConfig] = useState({
+    count: 75,
+    time: 180,
+    selectedSets: [],
+  });
 
   useEffect(() => {
     const course = courses.find((c) => c.id === courseId);
@@ -47,10 +51,31 @@ const Dashboard = () => {
     return newArr;
   };
 
-  const startExam = () => {
-    let pool = [];
-    state.availableData.forEach((set) => (pool = pool.concat(set.questions)));
+  const toggleSet = (idx) => {
+    setExamConfig((prev) => {
+      const selected = prev.selectedSets.includes(idx)
+        ? prev.selectedSets.filter((i) => i !== idx)
+        : [...prev.selectedSets, idx];
+      return { ...prev, selectedSets: selected };
+    });
+  };
 
+  const getSelectedPool = () => {
+    const indices =
+      examConfig.selectedSets.length > 0
+        ? examConfig.selectedSets
+        : state.availableData.map((_, i) => i);
+    let pool = [];
+    indices.forEach((i) => {
+      if (state.availableData[i]) {
+        pool = pool.concat(state.availableData[i].questions);
+      }
+    });
+    return pool;
+  };
+
+  const startExam = () => {
+    const pool = getSelectedPool();
     const shuffled = shuffleArray(pool);
     const questions = shuffled.slice(
       0,
@@ -143,6 +168,58 @@ const Dashboard = () => {
             <i className="fa-solid fa-arrow-left"></i> Configure Exam
           </h2>
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 cursor-default">
+            {/* Question Source Selection */}
+            <div className="mb-8">
+              <label className="block mb-3 font-semibold text-gray-700">
+                Question Source
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                    examConfig.selectedSets.length === 0
+                      ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                      : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                  }`}
+                  onClick={() =>
+                    setExamConfig({ ...examConfig, selectedSets: [] })
+                  }
+                >
+                  <i className="fa-solid fa-shuffle mr-1.5"></i>
+                  All Sets (Random Mix)
+                </button>
+                {state.availableData.map((set, idx) => {
+                  const isSelected = examConfig.selectedSets.includes(idx);
+                  return (
+                    <button
+                      key={idx}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                        isSelected
+                          ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                          : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                      }`}
+                      onClick={() => toggleSet(idx)}
+                    >
+                      {isSelected && (
+                        <i className="fa-solid fa-check mr-1.5"></i>
+                      )}
+                      {set.name}
+                      <span
+                        className={`ml-1.5 text-xs ${isSelected ? "text-blue-200" : "text-gray-400"}`}
+                      >
+                        ({set.count})
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                <i className="fa-solid fa-info-circle mr-1"></i>
+                {examConfig.selectedSets.length === 0
+                  ? `All ${state.availableData.reduce((sum, s) => sum + s.count, 0)} questions from ${state.availableData.length} sets`
+                  : `${getSelectedPool().length} questions from ${examConfig.selectedSets.length} set${examConfig.selectedSets.length > 1 ? "s" : ""}`}
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <label className="block mb-2 font-semibold text-gray-700">

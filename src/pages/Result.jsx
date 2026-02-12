@@ -21,7 +21,11 @@ const Result = () => {
 
       if (!session.active && !stats) {
         processedRef.current = true;
-        const saved = await getLatestResult();
+        if (!currentCourse?.id) {
+          navigate("/");
+          return;
+        }
+        const saved = await getLatestResult(currentCourse.id);
         if (saved) {
           setStats(saved);
         } else {
@@ -90,8 +94,9 @@ const Result = () => {
         setStats(resultData);
 
         // Save to API (with localStorage fallback)
-        await addHistory(resultData);
-        await saveLatestResult(resultData);
+        const courseId = currentCourse ? currentCourse.id : "Unknown";
+        await addHistory(resultData, courseId);
+        await saveLatestResult(resultData, courseId);
       }
     };
 
@@ -117,7 +122,6 @@ const Result = () => {
           answers={stats.answers}
           readOnly={true}
           isHistoryShow={true}
-
         />
       </div>
     );

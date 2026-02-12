@@ -259,12 +259,15 @@ const ExamView = () => {
   const [alwaysIncorrectIds, setAlwaysIncorrectIds] = useState(new Set());
 
   // Load seen question IDs and always-incorrect IDs from API
+  const currentCourse = state.currentCourse;
   useEffect(() => {
+    if (!currentCourse?.id) return;
     const loadQuestionData = async () => {
       try {
+        const courseId = currentCourse.id;
         const [seenResponse, incorrectResponse] = await Promise.all([
-          fetch(`${API_URL}/history/seen-questions/`),
-          fetch(`${API_URL}/history/always-incorrect/`),
+          fetch(`${API_URL}/history/${courseId}/seen-questions/`),
+          fetch(`${API_URL}/history/${courseId}/always-incorrect/`),
         ]);
 
         if (seenResponse.ok) {
@@ -281,7 +284,7 @@ const ExamView = () => {
       }
     };
     loadQuestionData();
-  }, []);
+  }, [currentCourse]);
 
   const currentQ = session.questions[session.currentIndex];
   const userAnswers = session.answers[currentQ.id] || [];

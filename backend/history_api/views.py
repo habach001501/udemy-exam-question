@@ -1,5 +1,6 @@
 """
 Views for history API with file-based JSON persistence.
+History is stored per-course in separate files: data/<course_id>/history.json
 """
 
 import json
@@ -11,14 +12,14 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-def get_history_file_path():
-    """Get the path to the history JSON file."""
-    return settings.HISTORY_FILE
+def get_history_file_path(course_id):
+    """Get the path to the history JSON file for a specific course."""
+    return settings.DATA_DIR / course_id / 'history.json'
 
 
-def read_history():
-    """Read history from JSON file."""
-    file_path = get_history_file_path()
+def read_history(course_id):
+    """Read history from JSON file for a specific course."""
+    file_path = get_history_file_path(course_id)
     if not file_path.exists():
         # Ensure data directory exists
         file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -33,9 +34,9 @@ def read_history():
         return []
 
 
-def write_history(data):
-    """Write history to JSON file."""
-    file_path = get_history_file_path()
+def write_history(course_id, data):
+    """Write history to JSON file for a specific course."""
+    file_path = get_history_file_path(course_id)
     file_path.parent.mkdir(parents=True, exist_ok=True)
     with open(file_path, 'w') as f:
         json.dump(data, f, indent=2)
@@ -43,16 +44,16 @@ def write_history(data):
 
 class HistoryListView(APIView):
     """
-    GET: List all history records
-    POST: Add a new history record
+    GET: List all history records for a course
+    POST: Add a new history record for a course
     """
     
-    def get(self, request):
-        history = read_history()
+    def get(self, request, course_id):
+        history = read_history(course_id)
         return Response(history)
     
-    def post(self, request):
-        history = read_history()
+    def post(self, request, course_id):
+        history = read_history(course_id)
         new_record = request.data
         
         # Ensure record has an ID
@@ -62,18 +63,18 @@ class HistoryListView(APIView):
         
         # Add to beginning of list (newest first)
         history.insert(0, new_record)
-        write_history(history)
+        write_history(course_id, history)
         
         return Response(new_record, status=status.HTTP_201_CREATED)
 
 
 class LatestResultView(APIView):
     """
-    GET: Get the latest result
+    GET: Get the latest result for a course
     """
     
-    def get(self, request):
-        history = read_history()
+    def get(self, request, course_id):
+        history = read_history(course_id)
         if history:
             return Response(history[0])
         return Response(None, status=status.HTTP_404_NOT_FOUND)
@@ -85,32 +86,32 @@ class HistoryDetailView(APIView):
     DELETE: Delete a specific history record
     """
     
-    def get(self, request, record_id):
-        history = read_history()
+    def get(self, request, course_id, record_id):
+        history = read_history(course_id)
         for record in history:
             if record.get('id') == record_id:
                 return Response(record)
         return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
     
-    def delete(self, request, record_id):
-        history = read_history()
+    def delete(self, request, course_id, record_id):
+        history = read_history(course_id)
         original_length = len(history)
         history = [r for r in history if r.get('id') != record_id]
         
         if len(history) == original_length:
             return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
         
-        write_history(history)
+        write_history(course_id, history)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class SeenQuestionsView(APIView):
     """
-    GET: Get unique question IDs that have been seen in history
+    GET: Get unique question IDs that have been seen in history for a course
     """
     
-    def get(self, request):
-        history = read_history()
+    def get(self, request, course_id):
+        history = read_history(course_id)
         seen_ids = set()
         
         for record in history:
@@ -125,15 +126,15 @@ class SeenQuestionsView(APIView):
 
 class AlwaysIncorrectQuestionsView(APIView):
     """
-    GET: Get question IDs that have been attempted but never answered correctly.
-    These are questions the user needs to pay attention to.
+    GET: Get question IDs that have been attempted but never answered correctly
+    for a specific course.
     """
     
-    def get(self, request):
-        history = read_history()
+    def get(self, request, course_id):
+        history = read_history(course_id)
         
         # Track for each question: has it ever been answered correctly?
-        question_correct_status = {}  # {question_id: True if ever correct, False otherwise}
+        question_correct_status = {}
         
         for record in history:
             questions = record.get('questions', [])
@@ -148,16 +149,13 @@ class AlwaysIncorrectQuestionsView(APIView):
                 correct_response = question.get('correct_response', [])
                 user_answer = answers.get(q_id_str, [])
                 
-                # Check if user answered correctly (sorted comparison)
                 is_correct = sorted(user_answer) == sorted(correct_response)
                 
-                # If ever answered correctly, mark as True
                 if q_id not in question_correct_status:
                     question_correct_status[q_id] = is_correct
                 elif is_correct:
                     question_correct_status[q_id] = True
         
-        # Get questions that have been attempted but NEVER answered correctly
         always_incorrect_ids = [
             q_id for q_id, ever_correct in question_correct_status.items()
             if not ever_correct
