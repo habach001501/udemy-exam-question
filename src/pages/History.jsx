@@ -77,10 +77,16 @@ const History = () => {
     const correctUnique = ids.filter(
       (id) => questionStats[id].correct > 0,
     ).length;
+    // Match WeakReview.jsx logic: weak = correct <= incorrect AND has source
+    const weakCount = ids.filter(
+      (id) =>
+        questionStats[id].correct <= questionStats[id].incorrect &&
+        questionStats[id].question.source,
+    ).length;
     return {
       total: ids.length,
       correct: correctUnique,
-      weak: ids.length - correctUnique,
+      weak: weakCount,
     };
   }, [questionStats]);
 
