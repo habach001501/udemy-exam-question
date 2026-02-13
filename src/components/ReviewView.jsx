@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuiz } from "../context/QuizContext";
 import ReviewCard from "./ReviewCard";
@@ -10,6 +10,7 @@ const ReviewView = ({
   isHistoryShow = false,
   setIndex,
 }) => {
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
   const { state, dispatch } = useQuiz();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -20,7 +21,45 @@ const ReviewView = ({
   const [currentAnswers, setCurrentAnswers] = useState(initialAnswers);
   const [interactiveMode, setInteractiveMode] = useState(true);
   const [revealedQuestions, setRevealedQuestions] = useState({});
-  const [filter, setFilter] = useState("all"); // all, correct, incorrect, unanswered
+  const [filter, setFilter] = useState("all"); // all, correct, incorrect, unanswered, new, attention
+
+  // New/ATTENTION badge data
+  const [seenQuestionIds, setSeenQuestionIds] = useState(new Set());
+  const [alwaysIncorrectIds, setAlwaysIncorrectIds] = useState(new Set());
+
+  // Load seen question IDs and always-incorrect IDs from API
+  const currentCourse = state.currentCourse;
+  useEffect(() => {
+    if (!currentCourse?.id) return;
+    const loadQuestionData = async () => {
+      try {
+        const courseId = currentCourse.id;
+        const [seenResponse, incorrectResponse] = await Promise.all([
+          fetch(`${API_URL}/history/${courseId}/seen-questions/`),
+          fetch(`${API_URL}/history/${courseId}/always-incorrect/`),
+        ]);
+
+        if (seenResponse.ok) {
+          const data = await seenResponse.json();
+          setSeenQuestionIds(new Set(data.seen_question_ids));
+        }
+
+        if (incorrectResponse.ok) {
+          const data = await incorrectResponse.json();
+          setAlwaysIncorrectIds(new Set(data.always_incorrect_ids));
+        }
+      } catch (error) {
+        console.error("Failed to load question data:", error);
+      }
+    };
+    loadQuestionData();
+  }, [currentCourse]);
+
+  // Helper functions for New/ATTENTION status
+  const isNewQuestion = (q) =>
+    seenQuestionIds.size > 0 && !seenQuestionIds.has(q.id);
+  const isAttentionQuestion = (q) =>
+    alwaysIncorrectIds.has(q.id) && !isNewQuestion(q);
 
   // Determine if set switcher should be shown
   const availableSets = state.availableData || [];
@@ -75,6 +114,8 @@ const ReviewView = ({
     .map((q, idx) => ({ ...q, originalIndex: idx }))
     .filter((q) => {
       if (filter === "all") return true;
+      if (filter === "new") return isNewQuestion(q);
+      if (filter === "attention") return isAttentionQuestion(q);
       const status = getQuestionStatus(q);
       return status === filter;
     });
@@ -96,6 +137,8 @@ const ReviewView = ({
     unanswered: sessionQuestions.filter(
       (q) => getQuestionStatus(q) === "unanswered",
     ).length,
+    new: sessionQuestions.filter((q) => isNewQuestion(q)).length,
+    attention: sessionQuestions.filter((q) => isAttentionQuestion(q)).length,
   };
 
   const handleAnswerChange = (qId, selected) => {
@@ -202,15 +245,31 @@ const ReviewView = ({
                   }
                 }
 
+                const qIsNew = isNewQuestion(q);
+                const qIsAttention = isAttentionQuestion(q);
+
                 return (
                   <div
                     key={q.originalIndex}
                     id={`dot-${q.originalIndex}`}
-                    className={`min-w-[36px] h-9 shrink-0 flex flex-col items-center justify-center rounded-lg cursor-pointer text-xs transition-all duration-300 border transform hover:scale-110 active:scale-95 group/dot
+                    className={`min-w-[36px] h-9 shrink-0 flex flex-col items-center justify-center rounded-lg cursor-pointer text-xs transition-all duration-300 border transform hover:scale-110 active:scale-95 group/dot relative
                                         ${statusColor}
                                     `}
                     onClick={() => scrollToCard(q.originalIndex)}
                   >
+                    {/* New / Attention warning dot */}
+                    {qIsNew && (
+                      <div
+                        className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 border border-bg-card shadow-[0_0_6px_rgba(251,191,36,0.5)] z-10"
+                        title="New"
+                      ></div>
+                    )}
+                    {qIsAttention && (
+                      <div
+                        className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-gradient-to-r from-red-500 to-rose-600 border border-bg-card shadow-[0_0_6px_rgba(239,68,68,0.5)] z-10"
+                        title="Attention"
+                      ></div>
+                    )}
                     <span className="leading-none mt-0.5 font-mono">
                       {q.originalIndex + 1}
                     </span>
@@ -223,7 +282,14 @@ const ReviewView = ({
 
           {/* Right Block: Filters */}
           <div className="bg-bg-card border border-white/10 rounded-xl p-1.5 flex gap-1 shadow-xl shrink-0 backdrop-blur-md">
-            {["all", "correct", "incorrect", "unanswered"].map((f) => (
+            {[
+              "all",
+              "correct",
+              "incorrect",
+              "unanswered",
+              "new",
+              "attention",
+            ].map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
@@ -236,9 +302,19 @@ const ReviewView = ({
                                     ${f === "correct" && filter === f ? "!bg-success/10 !text-success !border-success/20" : ""}
                                     ${f === "incorrect" && filter === f ? "!bg-danger/10 !text-danger !border-danger/20" : ""}
                                     ${f === "unanswered" && filter === f ? "!bg-warning/10 !text-warning !border-warning/20" : ""}
+                                    ${f === "new" && filter === f ? "!bg-yellow-500/10 !text-yellow-400 !border-yellow-500/20" : ""}
+                                    ${f === "attention" && filter === f ? "!bg-rose-500/10 !text-rose-400 !border-rose-500/20" : ""}
                                 `}
               >
-                <span className="relative z-10">{f}</span>
+                <span className="relative z-10 flex items-center gap-1">
+                  {f === "new" && (
+                    <i className="fa-solid fa-sparkles text-[9px]"></i>
+                  )}
+                  {f === "attention" && (
+                    <i className="fa-solid fa-exclamation-triangle text-[9px]"></i>
+                  )}
+                  {f}
+                </span>
                 {filter === f && (
                   <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-50"></div>
                 )}
@@ -253,7 +329,11 @@ const ReviewView = ({
                                               ? "bg-danger text-white"
                                               : f === "unanswered"
                                                 ? "bg-warning text-bg-dark"
-                                                : "bg-primary text-white"
+                                                : f === "new"
+                                                  ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-black"
+                                                  : f === "attention"
+                                                    ? "bg-gradient-to-r from-red-500 to-rose-600 text-white"
+                                                    : "bg-primary text-white"
                                         }
                                     `}
                   >
