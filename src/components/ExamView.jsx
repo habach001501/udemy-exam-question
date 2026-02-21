@@ -4,12 +4,33 @@ import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-// Timer disguised as a subtle status indicator
+// Elapsed time timer (counts up from 0, pauses when session is paused)
 const Timer = memo(function Timer({ isCompact = false }) {
   const { state } = useQuiz();
-  const timeLeft = state.session.timeLeft;
+  const { startTime, isPaused, pausedAt, pausedDuration = 0 } = state.session;
+  const [elapsed, setElapsed] = useState(0);
 
-  if (!timeLeft || timeLeft <= 0) return null;
+  useEffect(() => {
+    if (!startTime) return;
+    const start = new Date(startTime).getTime();
+
+    const tick = () => {
+      const now = Date.now();
+      let totalPaused = pausedDuration;
+      if (isPaused && pausedAt) {
+        totalPaused += now - new Date(pausedAt).getTime();
+      }
+      setElapsed(Math.floor((now - start - totalPaused) / 1000));
+    };
+    tick();
+
+    if (!isPaused) {
+      const interval = setInterval(tick, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [startTime, isPaused, pausedAt, pausedDuration]);
+
+  if (!startTime) return null;
 
   const formatTime = (s) => {
     const m = Math.floor(s / 60);
@@ -18,14 +39,14 @@ const Timer = memo(function Timer({ isCompact = false }) {
   };
 
   const formatMinutesOnly = (s) => {
-    const m = Math.ceil(s / 60);
+    const m = Math.floor(s / 60);
     return `${m}m`;
   };
 
   if (isCompact) {
     return (
       <div className="text-gray-500 text-[10px] text-center mb-2 font-mono">
-        {formatMinutesOnly(timeLeft)}
+        {formatMinutesOnly(elapsed)}
       </div>
     );
   }
@@ -33,7 +54,7 @@ const Timer = memo(function Timer({ isCompact = false }) {
   return (
     <div className="text-gray-500 text-xs text-center mb-3 flex items-center justify-center gap-2">
       <i className="fa-regular fa-clock"></i>
-      <span className="font-mono">{formatTime(timeLeft)}</span>
+      <span className="font-mono">{formatTime(elapsed)}</span>
     </div>
   );
 });
@@ -117,10 +138,9 @@ const QuestionContent = memo(function QuestionContent({
                   <div
                     key={idx}
                     className={`flex text-[16px] border border-[#ececec] gap-3 p-2 rounded-lg cursor-pointer transition-all duration-200
-                      ${
-                        isSelected
-                          ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
-                          : "text-[#0d0d0d] hover:border hover:border-gray-900"
+                      ${isSelected
+                        ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
+                        : "text-[#0d0d0d] hover:border hover:border-gray-900"
                       }`}
                     onClick={() =>
                       handleAnswer(letter, currentQ.correct_response.length > 1)
@@ -230,10 +250,9 @@ const QuestionSidebar = memo(function QuestionSidebar({
         <div
           key={idx}
           className={`w-full py-2.5 px-3 rounded-md cursor-pointer transition-all text-sm truncate flex items-center gap-2
-            ${
-              idx === currentIndex
-                ? "bg-gray-300 text-gray-800"
-                : "text-gray-500 hover:bg-gray-200"
+            ${idx === currentIndex
+              ? "bg-gray-300 text-gray-800"
+              : "text-gray-500 hover:bg-gray-200"
             }
             ${answers[q.id]?.length && idx !== currentIndex ? "text-[#10a37f]" : ""}
           `}
@@ -360,21 +379,19 @@ const ExamView = () => {
           {!sidebarCollapsed && <span className="text-sm">New chat</span>}
         </button>
 
-        {state.session.timeLeft > 0 && <Timer isCompact={sidebarCollapsed} />}
+        <Timer isCompact={sidebarCollapsed} />
 
         {!sidebarCollapsed && (
           <>
-            {state.session.timeLeft > 0 && (
-              <button
-                className={`w-full mb-2 py-2.5 rounded-md text-sm transition-all cursor-pointer flex items-center justify-center gap-2 ${session.isPaused ? "bg-[#10a37f] text-white hover:bg-[#0d8a6c]" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
-                onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
-              >
-                <i
-                  className={`fa-solid ${session.isPaused ? "fa-play" : "fa-pause"} text-xs`}
-                ></i>
-                {session.isPaused ? "Resume" : "Pause"}
-              </button>
-            )}
+            <button
+              className={`w-full mb-2 py-2.5 rounded-md text-sm transition-all cursor-pointer flex items-center justify-center gap-2 ${session.isPaused ? "bg-[#10a37f] text-white hover:bg-[#0d8a6c]" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
+              onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
+            >
+              <i
+                className={`fa-solid ${session.isPaused ? "fa-play" : "fa-pause"} text-xs`}
+              ></i>
+              {session.isPaused ? "Resume" : "Pause"}
+            </button>
 
             <button
               className="bg-[#10a37f] text-white w-full mb-4 py-2.5 rounded-md text-sm hover:bg-[#0d8a6c] transition-all cursor-pointer flex items-center justify-center gap-2"
@@ -396,17 +413,15 @@ const ExamView = () => {
         {sidebarCollapsed && (
           <>
             <div className="flex flex-col gap-1 mb-1 w-full">
-              {state.session.timeLeft > 0 && (
-                <button
-                  className={`w-full h-7 rounded text-xs transition-all flex items-center justify-center cursor-pointer ${session.isPaused ? "bg-[#10a37f] text-white" : "bg-gray-700 text-gray-400 hover:bg-gray-600"}`}
-                  onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
-                  title={session.isPaused ? "Resume" : "Pause"}
-                >
-                  <i
-                    className={`fa-solid ${session.isPaused ? "fa-play" : "fa-pause"} text-[10px]`}
-                  ></i>
-                </button>
-              )}
+              <button
+                className={`w-full h-7 rounded text-xs transition-all flex items-center justify-center cursor-pointer ${session.isPaused ? "bg-[#10a37f] text-white" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
+                onClick={() => dispatch({ type: "TOGGLE_PAUSE" })}
+                title={session.isPaused ? "Resume" : "Pause"}
+              >
+                <i
+                  className={`fa-solid ${session.isPaused ? "fa-play" : "fa-pause"} text-[10px]`}
+                ></i>
+              </button>
 
               <button
                 className="bg-[#10a37f] text-white w-full h-7 rounded text-xs hover:bg-[#0d8a6c] transition-all flex items-center justify-center cursor-pointer"
@@ -429,7 +444,7 @@ const ExamView = () => {
       </aside>
 
       {/* Question Container - ChatGPT Style */}
-      <section className="bg-white p-6 md:p-10 rounded-lg h-full max-h-[90vh] overflow-y-auto flex flex-col relative">
+      <section className="bg-white p-2 md:p-4 rounded-lg h-full max-h-[90vh] overflow-y-auto flex flex-col relative">
         {session.isPaused ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#343541]/95 backdrop-blur-sm z-20 rounded-lg">
             <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center mb-6">
@@ -443,18 +458,16 @@ const ExamView = () => {
             </p>
           </div>
         ) : (
-          <>
-            <QuestionContent
-              currentIndex={session.currentIndex}
-              totalQuestions={session.questions.length}
-              currentQ={currentQ}
-              userAnswers={userAnswers}
-              handleAnswer={handleAnswer}
-              onNavigate={handleNavigate}
-              isNewQuestion={isNewQuestion}
-              isAlwaysIncorrect={isAlwaysIncorrect}
-            />
-          </>
+          <QuestionContent
+            currentIndex={session.currentIndex}
+            totalQuestions={session.questions.length}
+            currentQ={currentQ}
+            userAnswers={userAnswers}
+            handleAnswer={handleAnswer}
+            onNavigate={handleNavigate}
+            isNewQuestion={isNewQuestion}
+            isAlwaysIncorrect={isAlwaysIncorrect}
+          />
         )}
       </section>
     </div>

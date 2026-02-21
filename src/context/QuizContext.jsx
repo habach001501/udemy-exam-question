@@ -37,16 +37,35 @@ const quizReducer = (state, action) => {
           timeLeft: action.payload.timeLeft || 0,
           isFinished: false,
           isPaused: false,
+          pausedAt: null,
+          pausedDuration: 0,
         },
       };
     case "TOGGLE_PAUSE":
-      return {
-        ...state,
-        session: {
-          ...state.session,
-          isPaused: !state.session.isPaused,
-        },
-      };
+      if (state.session.isPaused) {
+        // Resuming: accumulate paused duration
+        const pausedMs = Date.now() - new Date(state.session.pausedAt).getTime();
+        return {
+          ...state,
+          session: {
+            ...state.session,
+            isPaused: false,
+            pausedAt: null,
+            pausedDuration: (state.session.pausedDuration || 0) + pausedMs,
+          },
+        };
+      } else {
+        // Pausing: save current timestamp
+        return {
+          ...state,
+          session: {
+            ...state.session,
+            isPaused: true,
+            pausedAt: new Date(),
+          },
+        };
+      }
+
     case "ANSWER_QUESTION":
       return {
         ...state,
@@ -66,14 +85,7 @@ const quizReducer = (state, action) => {
           currentIndex: action.payload,
         },
       };
-    case "TICK_TIMER":
-      return {
-        ...state,
-        session: {
-          ...state.session,
-          timeLeft: state.session.timeLeft - 60,
-        },
-      };
+
     case "FINISH_EXAM":
       return {
         ...state,

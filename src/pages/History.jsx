@@ -13,6 +13,7 @@ const History = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCourse, setSelectedCourse] = useState(courses[0]?.id || "ALL");
+  const [filterDate, setFilterDate] = useState("");
 
   // Load history for the selected course
   useEffect(() => {
@@ -41,10 +42,18 @@ const History = () => {
     }
   };
 
-  // Compute question results across all attempts
+  // Filter history by selected date
+  const filteredHistory = useMemo(() => {
+    if (!filterDate) return history;
+    const startOfDay = new Date(filterDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    return history.filter((h) => new Date(h.date) >= startOfDay);
+  }, [history, filterDate]);
+
+  // Compute question results across filtered attempts
   const questionStats = useMemo(() => {
     const results = {};
-    history.forEach((h) => {
+    filteredHistory.forEach((h) => {
       (h.questions || []).forEach((q) => {
         const userAnswer = h.answers?.[q.id] || [];
         const correctAnswer = q.correct_response || [];
@@ -70,7 +79,7 @@ const History = () => {
       });
     });
     return results;
-  }, [history]);
+  }, [filteredHistory]);
 
   const uniqueStats = useMemo(() => {
     const ids = Object.keys(questionStats);
@@ -95,18 +104,18 @@ const History = () => {
     navigate(`/weak-review?course=${selectedCourse}`);
   };
 
-  // Pagination calculations
-  const totalPages = Math.ceil(history.length / ITEMS_PER_PAGE);
+  // Pagination calculations (use filteredHistory)
+  const totalPages = Math.ceil(filteredHistory.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedHistory = history.slice(startIndex, endIndex);
+  const paginatedHistory = filteredHistory.slice(startIndex, endIndex);
 
-  // Reset to page 1 if current page exceeds total pages after deletion
+  // Reset to page 1 if current page exceeds total pages after deletion or filter change
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
     }
-  }, [history.length, currentPage, totalPages]);
+  }, [filteredHistory.length, currentPage, totalPages]);
 
   if (loading) {
     return (
@@ -199,49 +208,76 @@ const History = () => {
                 {courses.map((c) => (
                   <button
                     key={c.id}
-                    className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer border ${
-                      selectedCourse === c.id
-                        ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
-                    }`}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer border ${selectedCourse === c.id
+                      ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
+                      }`}
                     onClick={() => setSelectedCourse(c.id)}
                   >
                     <i className={`fa-solid ${c.icon} mr-1.5`}></i>
                     {c.id}
                   </button>
                 ))}
+
+                {/* Date Filter */}
+                <span className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white border border-gray-200 text-sm font-medium text-gray-600 ml-2">
+                  <i className="fa-solid fa-calendar-day text-orange-500"></i>
+                  <input
+                    type="date"
+                    value={filterDate}
+                    onChange={(e) => {
+                      setFilterDate(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="bg-transparent border-none outline-none text-sm text-gray-700 cursor-pointer"
+                    title="Filter from this date onward"
+                  />
+                  {filterDate && (
+                    <button
+                      className="text-gray-400 hover:text-danger transition-colors cursor-pointer"
+                      onClick={() => {
+                        setFilterDate("");
+                        setCurrentPage(1);
+                      }}
+                      title="Clear date filter"
+                    >
+                      <i className="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                  )}
+                </span>
               </div>
 
-              <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
+              <div className="flex items-center gap-4 text-sm font-medium text-gray-600 flex-wrap">
+
                 <span className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white border border-gray-200">
                   <i className="fa-solid fa-list-check text-primary"></i>
-                  {history.length} Attempts
+                  {filteredHistory.length} Attempts
                 </span>
-                {history.length > 0 && (
+                {filteredHistory.length > 0 && (
                   <>
                     <span className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white border border-gray-200">
                       <i className="fa-solid fa-chart-line text-success"></i>
                       {Math.round(
-                        (history.reduce(
+                        (filteredHistory.reduce(
                           (acc, curr) => acc + (curr.score || 0),
                           0,
                         ) /
-                          history.reduce(
+                          filteredHistory.reduce(
                             (acc, curr) => acc + (curr.total || 0),
                             0,
                           )) *
-                          100,
+                        100,
                       )}
                       % Avg Score
                     </span>
                     <span className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white border border-gray-200">
                       <i className="fa-solid fa-check-double text-blue-500"></i>
-                      {history.reduce(
+                      {filteredHistory.reduce(
                         (acc, curr) => acc + (curr.score || 0),
                         0,
                       )}
                       /
-                      {history.reduce(
+                      {filteredHistory.reduce(
                         (acc, curr) => acc + (curr.total || 0),
                         0,
                       )}{" "}
@@ -269,9 +305,9 @@ const History = () => {
       </div>
 
       <div className="flex flex-col gap-4">
-        {history.length === 0 ? (
+        {filteredHistory.length === 0 ? (
           <div className="p-8 text-center text-gray-500 bg-gray-50 rounded-xl border border-gray-200">
-            No attempts yet.
+            {filterDate ? "No attempts found from this date onward." : "No attempts yet."}
           </div>
         ) : (
           <>
@@ -380,11 +416,10 @@ const History = () => {
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-6">
                 <button
-                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${
-                    currentPage === 1
-                      ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary cursor-pointer"
-                  }`}
+                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${currentPage === 1
+                    ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary cursor-pointer"
+                    }`}
                   onClick={() =>
                     setCurrentPage((prev) => Math.max(1, prev - 1))
                   }
@@ -399,11 +434,10 @@ const History = () => {
                     (page) => (
                       <button
                         key={page}
-                        className={`w-10 h-10 rounded-lg border transition-all text-sm font-medium cursor-pointer ${
-                          currentPage === page
-                            ? "bg-primary border-primary text-white"
-                            : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary"
-                        }`}
+                        className={`w-10 h-10 rounded-lg border transition-all text-sm font-medium cursor-pointer ${currentPage === page
+                          ? "bg-primary border-primary text-white"
+                          : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary"
+                          }`}
                         onClick={() => setCurrentPage(page)}
                       >
                         {page}
@@ -413,11 +447,10 @@ const History = () => {
                 </div>
 
                 <button
-                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${
-                    currentPage === totalPages
-                      ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary cursor-pointer"
-                  }`}
+                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${currentPage === totalPages
+                    ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary cursor-pointer"
+                    }`}
                   onClick={() =>
                     setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                   }

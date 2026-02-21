@@ -12,7 +12,6 @@ const Dashboard = () => {
   const [view, setView] = useState("dashboard");
   const [examConfig, setExamConfig] = useState({
     count: 75,
-    time: 180,
     selectedSets: [],
   });
 
@@ -87,7 +86,7 @@ const Dashboard = () => {
       payload: {
         mode: "exam",
         questions,
-        timeLeft: examConfig.time * 60,
+        timeLeft: 0,
       },
     });
     navigate(`/quiz/${courseId}`);
@@ -175,11 +174,10 @@ const Dashboard = () => {
               </label>
               <div className="flex flex-wrap gap-2">
                 <button
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
-                    examConfig.selectedSets.length === 0
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${examConfig.selectedSets.length === 0
                       ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
                       : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
-                  }`}
+                    }`}
                   onClick={() =>
                     setExamConfig({ ...examConfig, selectedSets: [] })
                   }
@@ -192,11 +190,10 @@ const Dashboard = () => {
                   return (
                     <button
                       key={idx}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
-                        isSelected
+                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${isSelected
                           ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
                           : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
-                      }`}
+                        }`}
                       onClick={() => toggleSet(idx)}
                     >
                       {isSelected && (
@@ -220,42 +217,23 @@ const Dashboard = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <label className="block mb-2 font-semibold text-gray-700">
-                  Number of Questions
-                </label>
-                <input
-                  type="number"
-                  value={examConfig.count}
-                  onChange={(e) =>
-                    setExamConfig({
-                      ...examConfig,
-                      count: parseInt(e.target.value),
-                    })
-                  }
-                  min="1"
-                  max="500"
-                  className="w-full p-4 bg-white text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block mb-2 font-semibold text-gray-700">
-                  Time Limit (Minutes)
-                </label>
-                <input
-                  type="number"
-                  value={examConfig.time}
-                  onChange={(e) =>
-                    setExamConfig({
-                      ...examConfig,
-                      time: parseInt(e.target.value),
-                    })
-                  }
-                  min="1"
-                  className="w-full p-4 bg-white text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
-                />
-              </div>
+            <div>
+              <label className="block mb-2 font-semibold text-gray-700">
+                Number of Questions
+              </label>
+              <input
+                type="number"
+                value={examConfig.count}
+                onChange={(e) =>
+                  setExamConfig({
+                    ...examConfig,
+                    count: parseInt(e.target.value),
+                  })
+                }
+                min="1"
+                max="500"
+                className="w-full p-4 bg-white text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+              />
             </div>
             <button
               className="bg-primary text-white shadow-lg shadow-primary/30 mt-8 py-3 px-8 rounded-lg font-semibold hover:bg-blue-600 hover:-translate-y-0.5 transition-all text-lg"

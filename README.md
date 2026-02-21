@@ -4,11 +4,11 @@ A practice platform for AWS certification exams, featuring timed exam simulation
 
 ## Key Features
 
-- **Exam Mode** — Timed exam simulation with randomly selected questions from the question bank. Supports **set selection** to pick specific practice sets or mix all sets randomly.
+- **Exam Mode** — Exam simulation with randomly selected questions from the question bank. Features an elapsed timer (counts up) and supports **set selection** to pick specific practice sets or mix all sets randomly.
 - **Review Mode** — Browse questions by practice set with instant answer reveals and detailed explanations.
 - **Weak Review** — Re-study questions you previously answered incorrectly.
 - **Question Badges** — Questions are tagged as **NEW** (never seen before) or **ATTENTION** (always answered incorrectly) during exams.
-- **Results & History** — Track scores, review attempt history, and view performance statistics per course.
+- **Results & History** — Track scores, review attempt history, view performance statistics per course, and filter stats by date.
 - **Git-Synced History** — Exam history is stored per-course in `backend/data/<course_id>/history.json` and can be synced across machines via Git.
 
 ## Supported Certifications

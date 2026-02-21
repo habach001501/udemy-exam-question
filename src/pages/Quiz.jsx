@@ -20,35 +20,7 @@ const Quiz = () => {
     }
   }, [session.active, navigate]);
 
-  // Timer Logic — only applies when session was started with a timer (timeLeft > 0)
-  useEffect(() => {
-    if (
-      session.mode === "exam" &&
-      !session.isFinished &&
-      !session.isPaused &&
-      session.timeLeft > 0
-    ) {
-      const interval = setInterval(() => {
-        dispatch({ type: "TICK_TIMER" });
-      }, 60000);
-      return () => clearInterval(interval);
-    } else if (
-      session.mode === "exam" &&
-      session.timeLeft < 0 &&
-      !session.isFinished
-    ) {
-      // Auto-submit only when timer has counted down past 0 (timeLeft goes negative from TICK_TIMER)
-      dispatch({ type: "FINISH_EXAM" });
-      navigate("/result");
-    }
-  }, [
-    session.mode,
-    session.timeLeft,
-    session.isFinished,
-    session.isPaused,
-    dispatch,
-    navigate,
-  ]);
+
 
   if (!session.active) return null;
 

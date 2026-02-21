@@ -69,7 +69,8 @@ state = {
     ├── questions    → Array of question objects
     ├── currentIndex → Current question position
     ├── answers      → { questionId: [selectedOptions] }
-    ├── timeLeft     → Remaining time in seconds
+    ├── startTime    → Session start timestamp (used for elapsed timer)
+    ├── timeLeft     → (legacy, always 0)
     └── isFinished   → Has session ended?
 }
 ```
@@ -83,8 +84,6 @@ state = {
 | `START_SESSION`      | Begin exam or review session  |
 | `ANSWER_QUESTION`    | Save selected answer          |
 | `NAVIGATE_QUESTION`  | Move to another question      |
-| `TICK_TIMER`         | Decrement timer               |
-| `TOGGLE_PAUSE`       | Pause/resume session          |
 | `FINISH_EXAM`        | End exam session              |
 | `RESET_SESSION`      | Reset session state           |
 
@@ -138,17 +137,16 @@ Dashboard → Click "Exam Simulator"
 Configure Exam:
   • Question Source — select specific sets or "All Sets (Random Mix)" (default)
   • Number of Questions — how many to include
-  • Time Limit — countdown duration in minutes
-  ↓ dispatch START_SESSION (mode='exam', timeLeft=N)
+  ↓ dispatch START_SESSION (mode='exam')
 Quiz.jsx → render ExamView
   ↓
 ExamView:
   • Display question + answer options
   • Show badges: NEW (first-time question) or ATTENTION (always incorrect)
-  • Countdown timer (TICK_TIMER every second)
+  • Elapsed timer (counts up from 0 since session start)
   • User selects answer → dispatch ANSWER_QUESTION
   • Navigate between questions → dispatch NAVIGATE_QUESTION
-  • Submit / time runs out → dispatch FINISH_EXAM
+  • Submit → dispatch FINISH_EXAM
   ↓
 Result.jsx:
   • Calculate score, display breakdown by section
