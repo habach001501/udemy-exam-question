@@ -277,6 +277,30 @@ const ExamView = () => {
   const [seenQuestionIds, setSeenQuestionIds] = useState(new Set());
   const [alwaysIncorrectIds, setAlwaysIncorrectIds] = useState(new Set());
 
+  // Auto-pause after 30s of inactivity
+  useEffect(() => {
+    if (session.isPaused || session.isFinished) return;
+
+    let timer = setTimeout(() => {
+      dispatch({ type: "TOGGLE_PAUSE" });
+    }, 5 * 60 * 1000);
+
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        dispatch({ type: "TOGGLE_PAUSE" });
+      }, 5 * 60 * 1000);
+    };
+
+    const events = ["mousemove", "mousedown", "keydown", "scroll", "touchstart"];
+    events.forEach((e) => window.addEventListener(e, resetTimer));
+
+    return () => {
+      clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, resetTimer));
+    };
+  }, [session.isPaused, session.isFinished, dispatch]);
+
   // Load seen question IDs and always-incorrect IDs from API
   const currentCourse = state.currentCourse;
   useEffect(() => {
