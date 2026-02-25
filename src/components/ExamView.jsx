@@ -67,6 +67,7 @@ const QuestionContent = memo(function QuestionContent({
   onNavigate,
   isNewQuestion,
   isAlwaysIncorrect,
+  answerShuffle,
 }) {
   const [isAvatarHovered, setIsAvatarHovered] = useState(false);
   console.log("currentQ", currentQ.prompt.question);
@@ -131,26 +132,28 @@ const QuestionContent = memo(function QuestionContent({
               Here are the options to consider:
             </p>
             <div className="flex flex-col gap-3 px-5">
-              {currentQ.prompt.answers.map((ansHtml, idx) => {
-                const letter = String.fromCharCode(97 + idx);
-                const isSelected = userAnswers.includes(letter);
+              {(answerShuffle || currentQ.prompt.answers.map((_, i) => i)).map((origIdx, displayIdx) => {
+                const displayLetter = String.fromCharCode(97 + displayIdx);
+                const origLetter = String.fromCharCode(97 + origIdx);
+                const ansHtml = currentQ.prompt.answers[origIdx];
+                const isSelected = userAnswers.includes(origLetter);
                 return (
                   <div
-                    key={idx}
+                    key={displayIdx}
                     className={`flex text-[16px] border border-[#ececec] gap-3 p-2 rounded-lg cursor-pointer transition-all duration-200
                       ${isSelected
                         ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
                         : "text-[#0d0d0d] hover:border hover:border-gray-900"
                       }`}
                     onClick={() =>
-                      handleAnswer(letter, currentQ.correct_response.length > 1)
+                      handleAnswer(origLetter, currentQ.correct_response.length > 1)
                     }
                   >
                     <div
                       className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 text-xs font-medium transition-colors
                         ${isSelected ? "bg-[#10a37f] text-white" : "bg-gray-600 text-gray-300"}`}
                     >
-                      {letter.toUpperCase()}
+                      {displayLetter.toUpperCase()}
                     </div>
                     <div
                       className={`flex-1 [&>p]:m-0 leading-relaxed ${isSelected ? "font-medium" : ""}`}
@@ -329,6 +332,23 @@ const ExamView = () => {
     loadQuestionData();
   }, [currentCourse]);
 
+  // Deterministic answer shuffle per question (seeded by question ID)
+  const answerShuffles = useMemo(() => {
+    const shuffles = {};
+    session.questions.forEach((q) => {
+      const indices = q.prompt.answers.map((_, i) => i);
+      const shuffled = [...indices];
+      let seed = typeof q.id === 'number' ? q.id : String(q.id).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        const j = seed % (i + 1);
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      shuffles[q.id] = shuffled;
+    });
+    return shuffles;
+  }, [session.questions]);
+
   const currentQ = session.questions[session.currentIndex];
   const userAnswers = session.answers[currentQ.id] || [];
   const isNewQuestion =
@@ -491,6 +511,7 @@ const ExamView = () => {
             onNavigate={handleNavigate}
             isNewQuestion={isNewQuestion}
             isAlwaysIncorrect={isAlwaysIncorrect}
+            answerShuffle={answerShuffles[currentQ.id]}
           />
         )}
       </section>
