@@ -11,9 +11,10 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("dashboard");
   const [examConfig, setExamConfig] = useState({
-    count: 75,
+    count: 25,
     selectedSets: [],
   });
+  const [selectedRange, setSelectedRange] = useState(null); // null = all, or [start, end]
 
   useEffect(() => {
     const course = courses.find((c) => c.id === courseId);
@@ -57,6 +58,7 @@ const Dashboard = () => {
         : [...prev.selectedSets, idx];
       return { ...prev, selectedSets: selected };
     });
+    setSelectedRange(null); // reset range when changing sets
   };
 
   const getSelectedPool = () => {
@@ -75,22 +77,44 @@ const Dashboard = () => {
 
   const startExam = () => {
     const pool = getSelectedPool();
-    const shuffled = shuffleArray(pool);
-    const questions = shuffled.slice(
-      0,
-      Math.min(examConfig.count, shuffled.length),
-    );
+    let questionsToUse;
+
+    if (selectedRange && examConfig.selectedSets.length > 0) {
+      // Use the specific range (no shuffle for range, keep original order then shuffle)
+      const rangeSlice = pool.slice(selectedRange[0], selectedRange[1]);
+      questionsToUse = shuffleArray(rangeSlice);
+    } else {
+      const shuffled = shuffleArray(pool);
+      questionsToUse = shuffled.slice(
+        0,
+        Math.min(examConfig.count, shuffled.length),
+      );
+    }
 
     dispatch({
       type: "START_SESSION",
       payload: {
         mode: "exam",
-        questions,
+        questions: questionsToUse,
         timeLeft: 0,
       },
     });
     navigate(`/quiz/${courseId}`);
   };
+
+  // Compute range chunks for the selected pool
+  const rangeChunks = React.useMemo(() => {
+    if (examConfig.selectedSets.length === 0) return [];
+    const pool = getSelectedPool();
+    const total = pool.length;
+    const chunkSize = examConfig.count || 20;
+    const chunks = [];
+    for (let i = 0; i < total; i += chunkSize) {
+      const end = Math.min(i + chunkSize, total);
+      chunks.push({ start: i, end, label: `Q${i + 1}–${end}` });
+    }
+    return chunks;
+  }, [examConfig.selectedSets, examConfig.count, state.availableData]);
 
   const startReview = (setIndex) => {
     const questions = state.availableData[setIndex].questions;
@@ -175,12 +199,13 @@ const Dashboard = () => {
               <div className="flex flex-wrap gap-2">
                 <button
                   className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${examConfig.selectedSets.length === 0
-                      ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                      : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                    ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                    : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
                     }`}
-                  onClick={() =>
-                    setExamConfig({ ...examConfig, selectedSets: [] })
-                  }
+                  onClick={() => {
+                    setExamConfig({ ...examConfig, selectedSets: [] });
+                    setSelectedRange(null);
+                  }}
                 >
                   <i className="fa-solid fa-shuffle mr-1.5"></i>
                   All Sets (Random Mix)
@@ -191,8 +216,8 @@ const Dashboard = () => {
                     <button
                       key={idx}
                       className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${isSelected
-                          ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                        ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                        : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
                         }`}
                       onClick={() => toggleSet(idx)}
                     >
@@ -224,17 +249,65 @@ const Dashboard = () => {
               <input
                 type="number"
                 value={examConfig.count}
-                onChange={(e) =>
+                onChange={(e) => {
                   setExamConfig({
                     ...examConfig,
-                    count: parseInt(e.target.value),
-                  })
-                }
+                    count: parseInt(e.target.value) || 1,
+                  });
+                  setSelectedRange(null);
+                }}
                 min="1"
                 max="500"
                 className="w-full p-4 bg-white text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
               />
             </div>
+
+            {/* Question Range Selection — only when specific sets are selected */}
+            {examConfig.selectedSets.length > 0 && rangeChunks.length > 1 && (
+              <div className="mt-6">
+                <label className="block mb-3 font-semibold text-gray-700">
+                  Question Range
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${selectedRange === null
+                      ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                      : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                      }`}
+                    onClick={() => setSelectedRange(null)}
+                  >
+                    <i className="fa-solid fa-layer-group mr-1.5"></i>
+                    All ({getSelectedPool().length})
+                  </button>
+                  {rangeChunks.map((chunk, idx) => {
+                    const isActive =
+                      selectedRange &&
+                      selectedRange[0] === chunk.start &&
+                      selectedRange[1] === chunk.end;
+                    return (
+                      <button
+                        key={idx}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${isActive
+                          ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                          : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                          }`}
+                        onClick={() =>
+                          setSelectedRange([chunk.start, chunk.end])
+                        }
+                      >
+                        {chunk.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  <i className="fa-solid fa-info-circle mr-1"></i>
+                  {selectedRange
+                    ? `${selectedRange[1] - selectedRange[0]} questions (${selectedRange[0] + 1}–${selectedRange[1]} from pool)`
+                    : `All ${getSelectedPool().length} questions will be shuffled, limited to ${examConfig.count}`}
+                </p>
+              </div>
+            )}
             <button
               className="bg-primary text-white shadow-lg shadow-primary/30 mt-8 py-3 px-8 rounded-lg font-semibold hover:bg-blue-600 hover:-translate-y-0.5 transition-all text-lg"
               onClick={startExam}
