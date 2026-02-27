@@ -91,12 +91,31 @@ const Dashboard = () => {
       );
     }
 
+    // Build source label for history display
+    let sourceLabel;
+    if (examConfig.selectedSets.length === 0) {
+      // All Sets (Random Mix)
+      sourceLabel = `Random-${questionsToUse.length}`;
+    } else {
+      // Specific set(s) selected
+      const setNames = examConfig.selectedSets
+        .map((i) => state.availableData[i]?.name)
+        .filter(Boolean);
+      const setsStr = setNames.join(", ");
+      if (selectedRange) {
+        sourceLabel = `${setsStr} Q${selectedRange[0] + 1}-${selectedRange[1]}`;
+      } else {
+        sourceLabel = `${setsStr}-${questionsToUse.length}`;
+      }
+    }
+
     dispatch({
       type: "START_SESSION",
       payload: {
         mode: "exam",
         questions: questionsToUse,
         timeLeft: 0,
+        sourceLabel,
       },
     });
     navigate(`/quiz/${courseId}`);
@@ -198,10 +217,11 @@ const Dashboard = () => {
               </label>
               <div className="flex flex-wrap gap-2">
                 <button
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${examConfig.selectedSets.length === 0
-                    ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                    : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
-                    }`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                    examConfig.selectedSets.length === 0
+                      ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                      : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                  }`}
                   onClick={() => {
                     setExamConfig({ ...examConfig, selectedSets: [] });
                     setSelectedRange(null);
@@ -215,10 +235,11 @@ const Dashboard = () => {
                   return (
                     <button
                       key={idx}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${isSelected
-                        ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                        : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
-                        }`}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                        isSelected
+                          ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                          : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                      }`}
                       onClick={() => toggleSet(idx)}
                     >
                       {isSelected && (
@@ -270,10 +291,11 @@ const Dashboard = () => {
                 </label>
                 <div className="flex flex-wrap gap-2">
                   <button
-                    className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${selectedRange === null
-                      ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                      : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
-                      }`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                      selectedRange === null
+                        ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                        : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                    }`}
                     onClick={() => setSelectedRange(null)}
                   >
                     <i className="fa-solid fa-layer-group mr-1.5"></i>
@@ -287,10 +309,11 @@ const Dashboard = () => {
                     return (
                       <button
                         key={idx}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${isActive
-                          ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
-                          }`}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                          isActive
+                            ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                            : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                        }`}
                         onClick={() =>
                           setSelectedRange([chunk.start, chunk.end])
                         }

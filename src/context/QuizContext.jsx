@@ -30,6 +30,7 @@ const quizReducer = (state, action) => {
           ...state.session,
           active: true,
           mode: action.payload.mode,
+          sourceLabel: action.payload.sourceLabel || null,
           questions: action.payload.questions,
           currentIndex: 0,
           answers: {},
@@ -44,7 +45,8 @@ const quizReducer = (state, action) => {
     case "TOGGLE_PAUSE":
       if (state.session.isPaused) {
         // Resuming: accumulate paused duration
-        const pausedMs = Date.now() - new Date(state.session.pausedAt).getTime();
+        const pausedMs =
+          Date.now() - new Date(state.session.pausedAt).getTime();
         return {
           ...state,
           session: {

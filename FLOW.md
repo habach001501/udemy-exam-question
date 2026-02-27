@@ -66,6 +66,7 @@ state = {
   session         → Current exam/review session
     ├── active       → Is session in progress?
     ├── mode         → 'exam' | 'review'
+    ├── sourceLabel  → Descriptive label for history (e.g. 'Random-25', 'Stephan Set 2 Q26-50')
     ├── questions    → Array of question objects
     ├── currentIndex → Current question position
     ├── answers      → { questionId: [selectedOptions] }
@@ -137,7 +138,11 @@ Dashboard → Click "Exam Simulator"
 Configure Exam:
   • Question Source — select specific sets or "All Sets (Random Mix)" (default)
   • Number of Questions — how many to include
-  ↓ dispatch START_SESSION (mode='exam')
+  ↓ Build sourceLabel based on config:
+    • All Sets → "Random-25"
+    • Specific set(s) → "Stephan Set 2-25"
+    • Specific set(s) + range → "Stephan Set 2 Q26-50"
+  ↓ dispatch START_SESSION (mode='exam', sourceLabel)
 Quiz.jsx → render ExamView
   ↓
 ExamView:
@@ -150,6 +155,7 @@ ExamView:
   ↓
 Result.jsx:
   • Calculate score, display breakdown by section
+  • Save sourceLabel in history record
   • Call api.addHistory(record, courseId) → POST /api/history/<courseId>/
   ↓
 Backend (Django):
@@ -180,12 +186,17 @@ ReviewView:
 
 ```
 History.jsx → Click "Weak Review" button
-  ↓ Opens new tab → /weak-review
+  ↓ Opens new tab → /weak-review?course=<courseId>
 WeakReview.jsx:
   • Fetch history from API for the selected course
-  • Analyze all attempts to find questions always answered incorrectly
-  • Display each weak question with correct answer + explanation
-  • No timer
+  • Analyze all attempts to find questions where correct ≤ incorrect
+  • Choose mode:
+    ├── Study Mode → ReviewView (browse with answers visible, no save)
+    └── Practice Mode:
+          • dispatch SET_COURSE (ensures Result.jsx can save)
+          • dispatch START_SESSION (mode='exam', sourceLabel='Weak Review-N')
+          • Navigate to /quiz/<courseId>
+          • Uses ExamView (timed, submit saves to history)
 ```
 
 ---

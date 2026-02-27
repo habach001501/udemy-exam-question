@@ -81,6 +81,7 @@ const Result = () => {
           date: new Date().toISOString(),
           course: currentCourse ? currentCourse.id : "Unknown",
           mode: session.mode,
+          sourceLabel: session.sourceLabel || null,
           score,
           incorrect,
           unanswered,

@@ -208,10 +208,11 @@ const History = () => {
                 {courses.map((c) => (
                   <button
                     key={c.id}
-                    className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer border ${selectedCourse === c.id
-                      ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
-                      }`}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer border ${
+                      selectedCourse === c.id
+                        ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
+                    }`}
                     onClick={() => setSelectedCourse(c.id)}
                   >
                     <i className={`fa-solid ${c.icon} mr-1.5`}></i>
@@ -248,7 +249,6 @@ const History = () => {
               </div>
 
               <div className="flex items-center gap-4 text-sm font-medium text-gray-600 flex-wrap">
-
                 <span className="flex items-center gap-2 px-3 py-1 rounded-lg bg-white border border-gray-200">
                   <i className="fa-solid fa-list-check text-primary"></i>
                   {filteredHistory.length} Attempts
@@ -266,7 +266,7 @@ const History = () => {
                             (acc, curr) => acc + (curr.total || 0),
                             0,
                           )) *
-                        100,
+                          100,
                       )}
                       % Avg Score
                     </span>
@@ -307,7 +307,9 @@ const History = () => {
       <div className="flex flex-col gap-4">
         {filteredHistory.length === 0 ? (
           <div className="p-8 text-center text-gray-500 bg-gray-50 rounded-xl border border-gray-200">
-            {filterDate ? "No attempts found from this date onward." : "No attempts yet."}
+            {filterDate
+              ? "No attempts found from this date onward."
+              : "No attempts yet."}
           </div>
         ) : (
           <>
@@ -321,10 +323,10 @@ const History = () => {
                   className={`absolute top-0 left-0 w-1 h-full ${h.percent >= 75 ? "bg-success" : "bg-danger"} opacity-50 group-hover:opacity-100 transition-opacity`}
                 ></div>
 
-                <div className="flex flex-wrap items-center gap-4 p-2 pl-7">
-                  {/* Date and ID Info */}
-                  <div className="min-w-[140px]">
-                    <div className="font-bold text-gray-800">
+                <div className="grid grid-cols-[130px_90px_1fr_70px_150px_auto] items-center gap-3 p-2 pl-7">
+                  {/* Date */}
+                  <div>
+                    <div className="font-bold text-gray-800 text-sm">
                       {new Date(h.date).toLocaleDateString()}
                     </div>
                     <div className="text-xs text-gray-500 mt-0.5">
@@ -333,55 +335,56 @@ const History = () => {
                   </div>
 
                   {/* Course Badge */}
-                  <div className="min-w-[120px]">
+                  <div>
                     <span className="px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wide group-hover:bg-primary/20 transition-colors">
                       {h.course}
                     </span>
                   </div>
 
-                  {/* Mode */}
-                  <div className="w-[100px] text-sm uppercase text-gray-600 font-medium tracking-wide">
-                    {h.mode}
+                  {/* Mode / Source Label */}
+                  <div
+                    className="text-sm uppercase text-gray-600 font-medium tracking-wide truncate"
+                    title={h.sourceLabel || h.mode}
+                  >
+                    {h.sourceLabel || h.mode}
                   </div>
 
-                  {/* Score Main Display */}
-                  <div className="flex-1 flex items-center justify-center gap-6">
-                    <div className="text-center">
-                      <div
-                        className={`text-2xl font-black ${h.percent >= 75 ? "text-success" : "text-danger"}`}
-                      >
-                        {h.percent}%
-                      </div>
-                      <div className="text-[10px] uppercase text-gray-500 font-bold tracking-wider">
-                        Score
-                      </div>
+                  {/* Score */}
+                  <div className="text-center">
+                    <div
+                      className={`text-2xl font-black ${h.percent >= 75 ? "text-success" : "text-danger"}`}
+                    >
+                      {h.percent}%
                     </div>
+                    <div className="text-[10px] uppercase text-gray-500 font-bold tracking-wider">
+                      Score
+                    </div>
+                  </div>
 
-                    {/* Mini Stats */}
-                    <div className="flex gap-1 text-xs font-mono bg-gray-100 p-1.5 rounded-lg">
-                      <div
-                        className="px-2 py-0.5 rounded bg-success/10 text-success border border-success/20"
-                        title="Correct"
-                      >
-                        {h.score || 0} C
-                      </div>
-                      <div
-                        className="px-2 py-0.5 rounded bg-danger/10 text-danger border border-danger/20"
-                        title="Incorrect"
-                      >
-                        {h.incorrect || 0} W
-                      </div>
-                      <div
-                        className="px-2 py-0.5 rounded bg-warning/10 text-warning border border-warning/20"
-                        title="Skipped"
-                      >
-                        {h.unanswered || 0} S
-                      </div>
+                  {/* Mini Stats */}
+                  <div className="flex gap-1 text-xs font-mono bg-gray-100 p-1.5 rounded-lg justify-center">
+                    <div
+                      className="px-2 py-0.5 rounded bg-success/10 text-success border border-success/20"
+                      title="Correct"
+                    >
+                      {h.score || 0} C
+                    </div>
+                    <div
+                      className="px-2 py-0.5 rounded bg-danger/10 text-danger border border-danger/20"
+                      title="Incorrect"
+                    >
+                      {h.incorrect || 0} W
+                    </div>
+                    <div
+                      className="px-2 py-0.5 rounded bg-warning/10 text-warning border border-warning/20"
+                      title="Skipped"
+                    >
+                      {h.unanswered || 0} S
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 justify-end">
                     {h.questions ? (
                       <>
                         <button
@@ -416,10 +419,11 @@ const History = () => {
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-6">
                 <button
-                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${currentPage === 1
-                    ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary cursor-pointer"
-                    }`}
+                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${
+                    currentPage === 1
+                      ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                      : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary cursor-pointer"
+                  }`}
                   onClick={() =>
                     setCurrentPage((prev) => Math.max(1, prev - 1))
                   }
@@ -434,10 +438,11 @@ const History = () => {
                     (page) => (
                       <button
                         key={page}
-                        className={`w-10 h-10 rounded-lg border transition-all text-sm font-medium cursor-pointer ${currentPage === page
-                          ? "bg-primary border-primary text-white"
-                          : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary"
-                          }`}
+                        className={`w-10 h-10 rounded-lg border transition-all text-sm font-medium cursor-pointer ${
+                          currentPage === page
+                            ? "bg-primary border-primary text-white"
+                            : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary"
+                        }`}
                         onClick={() => setCurrentPage(page)}
                       >
                         {page}
@@ -447,10 +452,11 @@ const History = () => {
                 </div>
 
                 <button
-                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${currentPage === totalPages
-                    ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary cursor-pointer"
-                    }`}
+                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${
+                    currentPage === totalPages
+                      ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                      : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary cursor-pointer"
+                  }`}
                   onClick={() =>
                     setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                   }

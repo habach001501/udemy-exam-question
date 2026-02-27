@@ -72,15 +72,22 @@ const WeakReview = () => {
   };
 
   const handleStartPractice = () => {
-    // Use QuizContext to start an exam session with weak questions
+    // Set the current course so Result.jsx can save history correctly
+    const courseId = courseFilter || courses[0]?.id;
+    const course = courses.find((c) => c.id === courseId);
+    if (course) {
+      dispatch({ type: "SET_COURSE", payload: course });
+    }
+
     dispatch({
       type: "START_SESSION",
       payload: {
         mode: "exam",
         questions: weakQuestions,
+        sourceLabel: `Weak Review-${weakQuestions.length}`,
       },
     });
-    navigate("/quiz/weak-review");
+    navigate(`/quiz/${courseId}`);
   };
 
   if (loading) {
