@@ -71,6 +71,16 @@ const WeakReview = () => {
     setMode("study");
   };
 
+  // Fisher-Yates shuffle
+  const shuffleArray = (array) => {
+    const newArr = [...array];
+    for (let i = newArr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+    }
+    return newArr;
+  };
+
   const handleStartPractice = () => {
     // Set the current course so Result.jsx can save history correctly
     const courseId = courseFilter || courses[0]?.id;
@@ -83,7 +93,7 @@ const WeakReview = () => {
       type: "START_SESSION",
       payload: {
         mode: "exam",
-        questions: weakQuestions,
+        questions: shuffleArray(weakQuestions),
         sourceLabel: `Weak Review-${weakQuestions.length}`,
       },
     });
