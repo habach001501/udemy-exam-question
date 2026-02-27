@@ -101,7 +101,9 @@ const History = () => {
 
   // Navigate to weak review page
   const handleOpenWeakReview = () => {
-    navigate(`/weak-review?course=${selectedCourse}`);
+    const params = new URLSearchParams({ course: selectedCourse });
+    if (filterDate) params.set("date", filterDate);
+    navigate(`/weak-review?${params.toString()}`);
   };
 
   // Pagination calculations (use filteredHistory)
@@ -208,11 +210,10 @@ const History = () => {
                 {courses.map((c) => (
                   <button
                     key={c.id}
-                    className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer border ${
-                      selectedCourse === c.id
+                    className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 cursor-pointer border ${selectedCourse === c.id
                         ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
                         : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
-                    }`}
+                      }`}
                     onClick={() => setSelectedCourse(c.id)}
                   >
                     <i className={`fa-solid ${c.icon} mr-1.5`}></i>
@@ -266,7 +267,7 @@ const History = () => {
                             (acc, curr) => acc + (curr.total || 0),
                             0,
                           )) *
-                          100,
+                        100,
                       )}
                       % Avg Score
                     </span>
@@ -419,11 +420,10 @@ const History = () => {
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-6">
                 <button
-                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${
-                    currentPage === 1
+                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${currentPage === 1
                       ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                       : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary cursor-pointer"
-                  }`}
+                    }`}
                   onClick={() =>
                     setCurrentPage((prev) => Math.max(1, prev - 1))
                   }
@@ -438,11 +438,10 @@ const History = () => {
                     (page) => (
                       <button
                         key={page}
-                        className={`w-10 h-10 rounded-lg border transition-all text-sm font-medium cursor-pointer ${
-                          currentPage === page
+                        className={`w-10 h-10 rounded-lg border transition-all text-sm font-medium cursor-pointer ${currentPage === page
                             ? "bg-primary border-primary text-white"
                             : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary"
-                        }`}
+                          }`}
                         onClick={() => setCurrentPage(page)}
                       >
                         {page}
@@ -452,11 +451,10 @@ const History = () => {
                 </div>
 
                 <button
-                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${
-                    currentPage === totalPages
+                  className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium ${currentPage === totalPages
                       ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                       : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary/30 hover:text-primary cursor-pointer"
-                  }`}
+                    }`}
                   onClick={() =>
                     setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                   }

@@ -9,6 +9,7 @@ const WeakReview = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const courseFilter = searchParams.get("course");
+  const dateFilter = searchParams.get("date");
   const { dispatch } = useQuiz();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,10 +25,18 @@ const WeakReview = () => {
     loadHistory();
   }, [courseFilter]);
 
-  // Compute question results across all attempts
+  // Apply the same date filter as History.jsx
+  const filteredHistory = useMemo(() => {
+    if (!dateFilter) return history;
+    const startOfDay = new Date(dateFilter);
+    startOfDay.setHours(0, 0, 0, 0);
+    return history.filter((h) => new Date(h.date) >= startOfDay);
+  }, [history, dateFilter]);
+
+  // Compute question results across filtered attempts
   const questionStats = useMemo(() => {
     const results = {};
-    history.forEach((h) => {
+    filteredHistory.forEach((h) => {
       (h.questions || []).forEach((q) => {
         const userAnswer = h.answers?.[q.id] || [];
         const correctAnswer = q.correct_response || [];
@@ -52,7 +61,7 @@ const WeakReview = () => {
       });
     });
     return results;
-  }, [history]);
+  }, [filteredHistory]);
 
   // Build weak questions (correctCount <= incorrectCount)
   const { weakQuestions, weakAnswers } = useMemo(() => {
