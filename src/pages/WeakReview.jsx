@@ -13,7 +13,9 @@ const WeakReview = () => {
   const { dispatch } = useQuiz();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState(null); // null = selection, 'study' = ReviewView, 'practice' dispatches to quiz
+  const [mode, setMode] = useState(null); // null = selection, 'study' = ReviewView, 'practice-setup' = config, 'practice' dispatches to quiz
+  const [practiceCount, setPracticeCount] = useState(25);
+  const [mixMode, setMixMode] = useState(false);
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -76,6 +78,17 @@ const WeakReview = () => {
     return { weakQuestions: questions, weakAnswers: answers };
   }, [questionStats]);
 
+  // Build non-weak questions (correct > incorrect) for mix mode
+  const nonWeakQuestions = useMemo(() => {
+    const questions = [];
+    Object.entries(questionStats).forEach(([, stat]) => {
+      if (stat.correct > stat.incorrect && stat.question.source) {
+        questions.push(stat.question);
+      }
+    });
+    return questions;
+  }, [questionStats]);
+
   const handleStartStudy = () => {
     setMode("study");
   };
@@ -98,12 +111,31 @@ const WeakReview = () => {
       dispatch({ type: "SET_COURSE", payload: course });
     }
 
+    let questionsToUse;
+    let sourceLabel;
+
+    if (mixMode && nonWeakQuestions.length > 0) {
+      // Mix mode: 50/50 split — half weak, half non-weak
+      const totalCount = practiceCount;
+      const halfWeak = Math.ceil(totalCount / 2);
+      const halfNonWeak = totalCount - halfWeak;
+      const shuffledWeak = shuffleArray(weakQuestions).slice(0, Math.min(halfWeak, weakQuestions.length));
+      const shuffledNonWeak = shuffleArray(nonWeakQuestions).slice(0, Math.min(halfNonWeak, nonWeakQuestions.length));
+      questionsToUse = shuffleArray([...shuffledWeak, ...shuffledNonWeak]);
+      sourceLabel = `Weak Mix-${questionsToUse.length} (${shuffledWeak.length}W+${shuffledNonWeak.length}S)`;
+    } else {
+      // Weak only — cap at weak questions count
+      const count = Math.min(practiceCount, weakQuestions.length) || weakQuestions.length;
+      questionsToUse = shuffleArray(weakQuestions).slice(0, count);
+      sourceLabel = `Weak Review-${questionsToUse.length}`;
+    }
+
     dispatch({
       type: "START_SESSION",
       payload: {
         mode: "exam",
-        questions: shuffleArray(weakQuestions),
-        sourceLabel: `Weak Review-${weakQuestions.length}`,
+        questions: questionsToUse,
+        sourceLabel,
       },
     });
     navigate(`/quiz/${courseId}`);
@@ -192,7 +224,7 @@ const WeakReview = () => {
           </div>
           <div
             className="bg-gray-50 border border-gray-200 rounded-xl p-8 transition-all duration-200 cursor-pointer hover:-translate-y-1 hover:shadow-xl hover:border-primary group"
-            onClick={handleStartPractice}
+            onClick={() => setMode("practice-setup")}
           >
             <div className="text-4xl mb-4 text-primary transition-transform">
               <i className="fa-solid fa-stopwatch"></i>
@@ -205,6 +237,115 @@ const WeakReview = () => {
               under real conditions.
             </p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Practice setup screen
+  if (mode === "practice-setup") {
+    const weakCount = weakQuestions.length;
+    const availableNonWeak = nonWeakQuestions.length;
+    const maxTotal = weakCount + availableNonWeak;
+    // 50/50 split preview
+    const halfWeak = Math.min(Math.ceil(practiceCount / 2), weakCount);
+    const halfNonWeak = Math.min(practiceCount - halfWeak, availableNonWeak);
+
+    return (
+      <div className="max-w-[1200px] mx-auto px-4 flex flex-col h-[90vh] pb-0 animate-fade-in bg-white">
+        {/* Header */}
+        <div className="flex items-center gap-4 mt-6 mb-8">
+          <button
+            className="group flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-xl transition-all duration-300 hover:shadow-lg hover:border-gray-300 cursor-pointer"
+            onClick={() => setMode(null)}
+          >
+            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center group-hover:-translate-x-1 transition-transform duration-300">
+              <i className="fa-solid fa-arrow-left text-sm text-gray-500 group-hover:text-gray-700"></i>
+            </div>
+            <span className="text-sm font-medium text-gray-600 group-hover:text-gray-800">
+              Back
+            </span>
+          </button>
+          <div>
+            <h1 className="text-3xl font-black text-gray-800 tracking-tight flex items-center gap-3">
+              <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
+                <i className="fa-solid fa-stopwatch text-primary text-lg"></i>
+              </span>
+              Configure Practice
+            </h1>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 cursor-default">
+          {/* Number of Questions */}
+          <div className="mb-8">
+            <label className="block mb-2 font-semibold text-gray-700">
+              Number of Questions
+            </label>
+            <input
+              type="number"
+              value={practiceCount}
+              onChange={(e) => setPracticeCount(Math.max(1, parseInt(e.target.value) || 1))}
+              min="1"
+              max={mixMode ? maxTotal : weakCount}
+              className="w-full p-4 bg-white text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+            />
+            <p className="text-xs text-gray-400 mt-2">
+              <i className="fa-solid fa-info-circle mr-1"></i>
+              {weakCount} weak + {availableNonWeak} strong available
+            </p>
+          </div>
+
+          {/* Mix Mode Toggle */}
+          <div className="mb-8">
+            <label className="block mb-3 font-semibold text-gray-700">
+              Question Mix
+            </label>
+            <div className="flex gap-3">
+              <button
+                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium border transition-all duration-200 ${!mixMode
+                  ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                  }`}
+                onClick={() => setMixMode(false)}
+              >
+                <i className="fa-solid fa-fire mr-2"></i>
+                Weak Only
+                <span className="block text-xs mt-1 opacity-75">
+                  {Math.min(practiceCount, weakCount)} weak questions
+                </span>
+              </button>
+              <button
+                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium border transition-all duration-200 ${mixMode
+                  ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                  } ${availableNonWeak === 0 ? "opacity-40 cursor-not-allowed" : ""}`}
+                onClick={() => availableNonWeak > 0 && setMixMode(true)}
+                disabled={availableNonWeak === 0}
+              >
+                <i className="fa-solid fa-shuffle mr-2"></i>
+                Mix (50/50)
+                <span className="block text-xs mt-1 opacity-75">
+                  {availableNonWeak > 0
+                    ? `${halfWeak} weak + ${halfNonWeak} strong`
+                    : "No strong questions available"}
+                </span>
+              </button>
+            </div>
+            {mixMode && (
+              <p className="text-xs text-gray-400 mt-2">
+                <i className="fa-solid fa-info-circle mr-1"></i>
+                {halfWeak} weak + {halfNonWeak} strong = {halfWeak + halfNonWeak} total, shuffled together
+              </p>
+            )}
+          </div>
+
+          <button
+            className="bg-primary text-white shadow-lg shadow-primary/30 mt-4 py-3 px-8 rounded-lg font-semibold hover:bg-blue-600 hover:-translate-y-0.5 transition-all text-lg cursor-pointer"
+            onClick={handleStartPractice}
+          >
+            Start Practice
+          </button>
         </div>
       </div>
     );
