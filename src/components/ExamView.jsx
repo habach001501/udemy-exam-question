@@ -67,6 +67,7 @@ const QuestionContent = memo(function QuestionContent({
   onNavigate,
   isNewQuestion,
   isAlwaysIncorrect,
+  isWeak,
   answerShuffle,
 }) {
   const [isAvatarHovered, setIsAvatarHovered] = useState(false);
@@ -91,9 +92,9 @@ const QuestionContent = memo(function QuestionContent({
                   <i className="fa-solid fa-sparkles"></i> NEW
                 </span>
               )}
-              {isAlwaysIncorrect && !isNewQuestion && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-gradient-to-r from-red-500 to-rose-600 text-white">
-                  <i className="fa-solid fa-exclamation-triangle"></i> ATTENTION
+              {isWeak && !isNewQuestion && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white">
+                  <i className="fa-solid fa-fire"></i> WEAK
                 </span>
               )}
               {currentQ.source && (
@@ -132,36 +133,42 @@ const QuestionContent = memo(function QuestionContent({
               Here are the options to consider:
             </p>
             <div className="flex flex-col gap-3 px-5">
-              {(answerShuffle || currentQ.prompt.answers.map((_, i) => i)).map((origIdx, displayIdx) => {
-                const displayLetter = String.fromCharCode(97 + displayIdx);
-                const origLetter = String.fromCharCode(97 + origIdx);
-                const ansHtml = currentQ.prompt.answers[origIdx];
-                const isSelected = userAnswers.includes(origLetter);
-                return (
-                  <div
-                    key={displayIdx}
-                    className={`flex text-[16px] border border-[#ececec] gap-3 p-2 rounded-lg cursor-pointer transition-all duration-200
-                      ${isSelected
-                        ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
-                        : "text-[#0d0d0d] hover:border hover:border-gray-900"
+              {(answerShuffle || currentQ.prompt.answers.map((_, i) => i)).map(
+                (origIdx, displayIdx) => {
+                  const displayLetter = String.fromCharCode(97 + displayIdx);
+                  const origLetter = String.fromCharCode(97 + origIdx);
+                  const ansHtml = currentQ.prompt.answers[origIdx];
+                  const isSelected = userAnswers.includes(origLetter);
+                  return (
+                    <div
+                      key={displayIdx}
+                      className={`flex text-[16px] border border-[#ececec] gap-3 p-2 rounded-lg cursor-pointer transition-all duration-200
+                      ${
+                        isSelected
+                          ? "border-[#10a37f] text-[#0d0d0d] hover:border-gray-900"
+                          : "text-[#0d0d0d] hover:border hover:border-gray-900"
                       }`}
-                    onClick={() =>
-                      handleAnswer(origLetter, currentQ.correct_response.length > 1)
-                    }
-                  >
-                    <div
-                      className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 text-xs font-medium transition-colors
-                        ${isSelected ? "bg-[#10a37f] text-white" : "bg-gray-600 text-gray-300"}`}
+                      onClick={() =>
+                        handleAnswer(
+                          origLetter,
+                          currentQ.correct_response.length > 1,
+                        )
+                      }
                     >
-                      {displayLetter.toUpperCase()}
+                      <div
+                        className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 text-xs font-medium transition-colors
+                        ${isSelected ? "bg-[#10a37f] text-white" : "bg-gray-600 text-gray-300"}`}
+                      >
+                        {displayLetter.toUpperCase()}
+                      </div>
+                      <div
+                        className={`flex-1 [&>p]:m-0 leading-relaxed ${isSelected ? "font-medium" : ""}`}
+                        dangerouslySetInnerHTML={{ __html: ansHtml }}
+                      ></div>
                     </div>
-                    <div
-                      className={`flex-1 [&>p]:m-0 leading-relaxed ${isSelected ? "font-medium" : ""}`}
-                      dangerouslySetInnerHTML={{ __html: ansHtml }}
-                    ></div>
-                  </div>
-                );
-              })}
+                  );
+                },
+              )}
             </div>
           </div>
         </div>
@@ -253,9 +260,10 @@ const QuestionSidebar = memo(function QuestionSidebar({
         <div
           key={idx}
           className={`w-full py-2.5 px-3 rounded-md cursor-pointer transition-all text-sm truncate flex items-center gap-2
-            ${idx === currentIndex
-              ? "bg-gray-300 text-gray-800"
-              : "text-gray-500 hover:bg-gray-200"
+            ${
+              idx === currentIndex
+                ? "bg-gray-300 text-gray-800"
+                : "text-gray-500 hover:bg-gray-200"
             }
             ${answers[q.id]?.length && idx !== currentIndex ? "text-[#10a37f]" : ""}
           `}
@@ -284,18 +292,30 @@ const ExamView = () => {
   useEffect(() => {
     if (session.isPaused || session.isFinished) return;
 
-    let timer = setTimeout(() => {
-      dispatch({ type: "TOGGLE_PAUSE" });
-    }, 5 * 60 * 1000);
+    let timer = setTimeout(
+      () => {
+        dispatch({ type: "TOGGLE_PAUSE" });
+      },
+      5 * 60 * 1000,
+    );
 
     const resetTimer = () => {
       clearTimeout(timer);
-      timer = setTimeout(() => {
-        dispatch({ type: "TOGGLE_PAUSE" });
-      }, 5 * 60 * 1000);
+      timer = setTimeout(
+        () => {
+          dispatch({ type: "TOGGLE_PAUSE" });
+        },
+        5 * 60 * 1000,
+      );
     };
 
-    const events = ["mousemove", "mousedown", "keydown", "scroll", "touchstart"];
+    const events = [
+      "mousemove",
+      "mousedown",
+      "keydown",
+      "scroll",
+      "touchstart",
+    ];
     events.forEach((e) => window.addEventListener(e, resetTimer));
 
     return () => {
@@ -338,7 +358,12 @@ const ExamView = () => {
     session.questions.forEach((q) => {
       const indices = q.prompt.answers.map((_, i) => i);
       const shuffled = [...indices];
-      let seed = typeof q.id === 'number' ? q.id : String(q.id).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+      let seed =
+        typeof q.id === "number"
+          ? q.id
+          : String(q.id)
+              .split("")
+              .reduce((a, c) => a + c.charCodeAt(0), 0);
       for (let i = shuffled.length - 1; i > 0; i--) {
         seed = (seed * 1103515245 + 12345) & 0x7fffffff;
         const j = seed % (i + 1);
@@ -354,6 +379,11 @@ const ExamView = () => {
   const isNewQuestion =
     seenQuestionIds.size > 0 && !seenQuestionIds.has(currentQ.id);
   const isAlwaysIncorrect = alwaysIncorrectIds.has(currentQ.id);
+  const weakIdSet = React.useMemo(
+    () => (session.weakQuestionIds ? new Set(session.weakQuestionIds) : null),
+    [session.weakQuestionIds],
+  );
+  const isWeak = weakIdSet ? weakIdSet.has(currentQ.id) : false;
 
   const handleAnswer = React.useCallback(
     (letter, isMulti) => {
@@ -511,6 +541,7 @@ const ExamView = () => {
             onNavigate={handleNavigate}
             isNewQuestion={isNewQuestion}
             isAlwaysIncorrect={isAlwaysIncorrect}
+            isWeak={isWeak}
             answerShuffle={answerShuffles[currentQ.id]}
           />
         )}

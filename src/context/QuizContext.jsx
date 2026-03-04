@@ -31,6 +31,7 @@ const quizReducer = (state, action) => {
           active: true,
           mode: action.payload.mode,
           sourceLabel: action.payload.sourceLabel || null,
+          weakQuestionIds: action.payload.weakQuestionIds || null,
           questions: action.payload.questions,
           currentIndex: 0,
           answers: {},

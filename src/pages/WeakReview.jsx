@@ -115,20 +115,35 @@ const WeakReview = () => {
     let sourceLabel;
 
     if (mixMode && nonWeakQuestions.length > 0) {
-      // Mix mode: 50/50 split — half weak, half non-weak
+      // Mix mode: 50/50 split — half weak, half non-weak, redistribute surplus
       const totalCount = practiceCount;
-      const halfWeak = Math.ceil(totalCount / 2);
-      const halfNonWeak = totalCount - halfWeak;
-      const shuffledWeak = shuffleArray(weakQuestions).slice(0, Math.min(halfWeak, weakQuestions.length));
-      const shuffledNonWeak = shuffleArray(nonWeakQuestions).slice(0, Math.min(halfNonWeak, nonWeakQuestions.length));
+      let weakSlots = Math.min(Math.ceil(totalCount / 2), weakQuestions.length);
+      let nonWeakSlots = Math.min(
+        totalCount - weakSlots,
+        nonWeakQuestions.length,
+      );
+      // If non-weak can't fill its half, give surplus back to weak
+      const remaining = totalCount - weakSlots - nonWeakSlots;
+      if (remaining > 0) {
+        weakSlots = Math.min(weakSlots + remaining, weakQuestions.length);
+      }
+      const shuffledWeak = shuffleArray(weakQuestions).slice(0, weakSlots);
+      const shuffledNonWeak = shuffleArray(nonWeakQuestions).slice(
+        0,
+        nonWeakSlots,
+      );
       questionsToUse = shuffleArray([...shuffledWeak, ...shuffledNonWeak]);
       sourceLabel = `Weak Mix-${questionsToUse.length} (${shuffledWeak.length}W+${shuffledNonWeak.length}S)`;
     } else {
       // Weak only — cap at weak questions count
-      const count = Math.min(practiceCount, weakQuestions.length) || weakQuestions.length;
+      const count =
+        Math.min(practiceCount, weakQuestions.length) || weakQuestions.length;
       questionsToUse = shuffleArray(weakQuestions).slice(0, count);
       sourceLabel = `Weak Review-${questionsToUse.length}`;
     }
+
+    // Build set of weak question IDs so ExamView can show WEAK badges
+    const weakIds = new Set(weakQuestions.map((q) => q.id));
 
     dispatch({
       type: "START_SESSION",
@@ -136,6 +151,7 @@ const WeakReview = () => {
         mode: "exam",
         questions: questionsToUse,
         sourceLabel,
+        weakQuestionIds: [...weakIds],
       },
     });
     navigate(`/quiz/${courseId}`);
@@ -247,9 +263,14 @@ const WeakReview = () => {
     const weakCount = weakQuestions.length;
     const availableNonWeak = nonWeakQuestions.length;
     const maxTotal = weakCount + availableNonWeak;
-    // 50/50 split preview
-    const halfWeak = Math.min(Math.ceil(practiceCount / 2), weakCount);
-    const halfNonWeak = Math.min(practiceCount - halfWeak, availableNonWeak);
+    // 50/50 split preview with redistribution
+    let halfWeak = Math.min(Math.ceil(practiceCount / 2), weakCount);
+    let halfNonWeak = Math.min(practiceCount - halfWeak, availableNonWeak);
+    // Redistribute surplus
+    const remaining = practiceCount - halfWeak - halfNonWeak;
+    if (remaining > 0) {
+      halfWeak = Math.min(halfWeak + remaining, weakCount);
+    }
 
     return (
       <div className="max-w-[1200px] mx-auto px-4 flex flex-col h-[90vh] pb-0 animate-fade-in bg-white">
@@ -285,7 +306,9 @@ const WeakReview = () => {
             <input
               type="number"
               value={practiceCount}
-              onChange={(e) => setPracticeCount(Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={(e) =>
+                setPracticeCount(Math.max(1, parseInt(e.target.value) || 1))
+              }
               min="1"
               max={mixMode ? maxTotal : weakCount}
               className="w-full p-4 bg-white text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
@@ -303,10 +326,11 @@ const WeakReview = () => {
             </label>
             <div className="flex gap-3">
               <button
-                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium border transition-all duration-200 ${!mixMode
-                  ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                  : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
-                  }`}
+                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                  !mixMode
+                    ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                    : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                }`}
                 onClick={() => setMixMode(false)}
               >
                 <i className="fa-solid fa-fire mr-2"></i>
@@ -316,10 +340,11 @@ const WeakReview = () => {
                 </span>
               </button>
               <button
-                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium border transition-all duration-200 ${mixMode
-                  ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                  : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
-                  } ${availableNonWeak === 0 ? "opacity-40 cursor-not-allowed" : ""}`}
+                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                  mixMode
+                    ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                    : "bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary"
+                } ${availableNonWeak === 0 ? "opacity-40 cursor-not-allowed" : ""}`}
                 onClick={() => availableNonWeak > 0 && setMixMode(true)}
                 disabled={availableNonWeak === 0}
               >
@@ -335,7 +360,8 @@ const WeakReview = () => {
             {mixMode && (
               <p className="text-xs text-gray-400 mt-2">
                 <i className="fa-solid fa-info-circle mr-1"></i>
-                {halfWeak} weak + {halfNonWeak} strong = {halfWeak + halfNonWeak} total, shuffled together
+                {halfWeak} weak + {halfNonWeak} strong ={" "}
+                {halfWeak + halfNonWeak} total, shuffled together
               </p>
             )}
           </div>
